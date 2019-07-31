@@ -143,17 +143,17 @@ other, and TLS certificates issued by a public TLS CA for the client facing API.
   * `ListenPort`: The port the cluster listens on. If blank, the port is the same
   port as the orderer general port (`general.listenPort`)
 
-  * `ListenPort` ：集群监听的端口。如果为空，该端口就和排序节点通用端口（`general.listenPort`）一致 。
+  * `ListenPort`：集群监听的端口。如果为空，该端口就和排序节点通用端口（`general.listenPort`）一致 。
 
   * `ListenAddress`: The address the cluster service is listening on.
 
-  * `ListenAddress` ：集群服务监听的地址。
+  * `ListenAddress`：集群服务监听的地址。
 
   * `ServerCertificate`, `ServerPrivateKey`: The TLS server certificate key pair
   which is used when the cluster service is running on a separate gRPC server
   (different port).
 
-  * `ServerCertificate`, `ServerPrivateKey` ：TLS 服务器证书密钥对，当集群服务运行在单独
+  * `ServerCertificate`, `ServerPrivateKey`：TLS 服务器证书密钥对，当集群服务运行在单独
   的 gRPC 服务器（不同端口）上时使用。
 
   * `SendBufferSize`: Regulates the number of messages in the egress buffer.
@@ -176,7 +176,7 @@ used to further fine tune the cluster communication or replication mechanisms:
   * `DialTimeout`, `RPCTimeout`: Specify the timeouts of creating connections and
   establishing streams.
 
-  * `DialTimeout`, `RPCTimeout` ：指定创建连接和建立流的超时时间。
+  * `DialTimeout`, `RPCTimeout`：指定创建连接和建立流的超时时间。
 
   * `ReplicationBufferSize`: the maximum number of bytes that can be allocated
   for each in-memory buffer used for block replication from other cluster nodes.
@@ -188,12 +188,12 @@ used to further fine tune the cluster communication or replication mechanisms:
   * `PullTimeout`: the maximum duration the ordering node will wait for a block
   to be received before it aborts. Defaults to five seconds.
 
-  * `PullTimeout` ：排序节点等待接收区块的最长时间。默认为五秒。
+  * `PullTimeout`：排序节点等待接收区块的最长时间。默认为五秒。
 
   * `ReplicationRetryTimeout`: The maximum duration the ordering node will wait
   between two consecutive attempts. Defaults to five seconds.
 
-  * `ReplicationRetryTimeout` ：排序节点在两次连续尝试之间等待的最长持续时间。默认为五秒。
+  * `ReplicationRetryTimeout`：排序节点在两次连续尝试之间等待的最长持续时间。默认为五秒。
 
   * `ReplicationBackgroundRefreshInterval`: the time between two consecutive
   attempts to replicate existing channels that this node was added to, or
@@ -205,13 +205,24 @@ used to further fine tune the cluster communication or replication mechanisms:
 
 **Consensus parameters:**
 
+共识参数：
+
   * `WALDir`: the location at which Write Ahead Logs for `etcd/raft` are stored.
   Each channel will have its own subdirectory named after the channel ID.
+
+  * `WALDir`：日志头为 `etcd/raft` 的日志的保存位置。
+  每个通道都会有以通道 ID 为名的子目录。
+
   * `SnapDir`: specifies the location at which snapshots for `etcd/raft` are stored.
   Each channel will have its own subdirectory named after the channel ID.
 
+  * `SnapDir`： 指定 `etcd/raft` 快照的存储位置。
+  每个通道都会有以通道 ID 为名的子目录。
+
 There is also a hidden configuration parameter that can be set by adding it to
 the consensus section in the `orderer.yaml`:
+
+还有一个隐藏配置参数可以加入到 `orderer.yaml` 的共识部分：
 
   * `EvictionSuspicion`: The cumulative period of time of channel eviction
   suspicion that triggers the node to pull blocks from other nodes and see if it
