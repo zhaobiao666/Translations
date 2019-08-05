@@ -157,7 +157,7 @@ Hyperledger Fabric 的设计允许网络启动者选择一种最能代表参与�
 我在哪里可以了解更多?
 -----------------------
 
-* `身份<identity/identity.html>`_ （概念文档）
+* `身份 <identity/identity.html>`_ （概念文档）
 
 概念文档，将带您了解身份在 Fabric 网络中扮演的关键角色（使用已建立的 PKI 结构和 x.509 证书）。
 
