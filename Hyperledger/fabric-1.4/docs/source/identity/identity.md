@@ -10,7 +10,7 @@
 
 ## 一个简单的场景来解释身份的使用
 
-假设你去超市买一些杂货。在收银台，你会看到一个牌子，上面写着只接受 Visa、Mastercard 和 AMEX 卡。如果你想用另一张卡支付——我们称之为 “ImagineCard”——不管这张卡是否真实，你的账户里是否有足够的资金。我们不会接受的。"
+假设你去超市买一些杂货。在收银台，你会看到一个牌子，上面写着只接受 Visa、Mastercard 和 AMEX 卡。如果你想用另一张卡支付——我们称之为 “ImagineCard”——不管这张卡是否真实，你的账户里是否有足够的资金。我们不会接受的。
 
 ![Scenario](./identity.diagram.6.png)
 
@@ -91,17 +91,6 @@ CA 有两种类型：**根 CA** 和**中间 CA**。由于根 CA（赛门铁克�
 当涉及到跨多个组织颁发证书时，中间 CA 提供了巨大的灵活性，这在经过许可的区块链系统（如 Fabric）中非常有用。例如，您将看到不同的组织可能使用不同的根 CA，或者使用相同的根 CA 和不同的中间 CA——这确实取决于网络的需要。
 
 ### Fabric CA
-
-It's because CAs are so important that Fabric provides a built-in CA component to
-allow you to create CAs in the blockchain networks you form. This component --- known
-as **Fabric CA** is a private root CA provider capable of managing digital identities of
-Fabric participants that have the form of X.509 certificates.
-Because Fabric CA is a custom CA targeting the Root CA needs of Fabric,
-it is inherently not capable of providing SSL certificates for general/automatic use
-in browsers. However, because **some** CA must be used to manage identity
-(even in a test environment), Fabric CA can be used to provide and manage
-certificates. It is also possible --- and fully appropriate --- to use a
-public/commerical root or intermediate CA to provide identification.
 
 正是因为 CA 非常重要，Fabric 提供了一个内置的 CA 组件，允许您在您构成的区块链网络中创建 CA。这个组件——称为 **Fabric CA**，是一个私有根 CA 提供者，能够管理具有 X.509 证书的 Fabric 参与者的数字身份。因为 Fabric CA 是针对 Fabric 的根 CA 需求的自定义 CA，所以它本质上不能为浏览器中的常规/自动使用提供 SSL 证书。但是，由于必须使用**一些** CA 来管理身份（即使在测试环境中），Fabric CA 可以用来提供和管理证书。使用公共或者商业根或中间 CA 来提供标识也是可以的，而且完全合适。
 
