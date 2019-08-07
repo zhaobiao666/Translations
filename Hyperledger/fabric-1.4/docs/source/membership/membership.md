@@ -1,27 +1,26 @@
 # 成员
 
-如果你已经通读了[身份](../identity/identity.html)文档，那么你应该已经看到了一个 PKI 是如何能够通过一个信任的链条来提供一个可验证的身份信息的。现在让我们看一下这些身份信息是如何 能够被用来代表这些区块链网络中的可信任的成员的。"
+如果你已经阅读了[身份](../identity/identity.html)文档，那么你应该已经看到了一个 PKI 是如何能够通过一个信任的链条来提供一个可验证的身份信息的。现在让我们看一下这些身份信息是如何被用来代表这些区块链网络中的可信任的成员的。"
 
-这就需要**成员服务**提供者（MSP）发挥作用了，**它标识所信任的根 CA 和中间 CA 定义信任域的成员，例如，一个组织**，通过列出其成员的身份，或者通过标识出哪些 CA 授权为他们的成员发行有效身份，或者——通常会是这样的——通过两者的结合。
+这就需要**成员服务**提供者（MSP）发挥作用了，**它标识所信任的根 CA 和中间 CA 定义信任域的成员，例如，一个组织**。通过列出其成员的身份，或者通过标识出哪些 CA 授权为他们的成员发行有效身份，或者通过两者的结合。最后一种方法比较常用。
 
-一个 MSP 的能力远远要超过简单地列出来谁是一个网络的参与者或者是一个通道的成员。MSP 可以识别参与者可能在 MSP 所代表的组织范围内（例如，管理员或作为子组织组的成员）扮演的特定**角色**，并设置在网络和通道上下文中定义**访问权限**的基础（例如，通道管理员、读卡器、作者）。
+一个 MSP 的能力远远要超过简单地列出来谁是一个网络的参与者或者是一个通道的成员。MSP 可以识别参与者可能在 MSP 所代表的组织范围内（例如，管理员或作为子组织组的成员）扮演的特定**角色**，并设置在网络和通道上下文中定义**访问权限**的基础（例如，通道管理员、读取者、写入者）。
 
-一个 MSP 的配置文件会被广播到相对应的组织的成员所参与的所有的通道中（以一种**通道 MSP** 的形式）。除了通道 MSP，Peer 节点、排序节点以及客户端也维护这一个**本地 MSP**，来为在一个通道上下文之外的成员消息进行授权，并且为一个特定的组件定义权限（比如，它有能力在一个节点上来安装链码)。
+一个 MSP 的配置文件会被广播到相应的组织成员所参与的所有的通道中（以一种**通道 MSP** 的形式）。除了通道 MSP，Peer 节点、排序节点以及客户端也维护着一个**本地 MSP**，来为在一个通道之外的成员消息进行授权，并且为一个特定的组件定义权限（比如，它有能力在一个节点上来安装链码)。
 
 此外，MSP 还允许标识已被撤销的身份列表（如[身份](../identity/identity.html)文档中所讨论的），但是我们将讨论该过程如何扩展到 MSP。
 
-稍后我们将更多地讨论本地和通道 MSP 。现在，让我们看看 MSP 通常做些什么。
+稍后我们将更多地讨论本地和通道 MSP。现在，让我们看看 MSP 通常做些什么。
 
 ### 将 MSP 映射到组织
 
 **组织**是一组被管理的成员。可以是像跨国公司这样的大公司，也可以是像花店这样的小公司。对于组织（简称 **orgs**）来说，最重要的是他们在一个 MSP 下管理他们的成员。注意，这与我们稍后将讨论的 X.509 证书中定义的组织概念不同。
 
-由于组织及其 MSP 之间的排他性关系，所以最好使用组织的名称命名 MSP，您会发现在大多数策略配置中都采用了这种约定。例如，组织 `ORG1` 可能有一个名为 `ORG1-MSP` 之类的 MSP。在某些情况下，组织可能需要多个成员组，例如，通道用于在组织之间执行非常不同的业务功能。在这些情况下，有多个 MSP 并相应地命名是有意义的，例如，`ORG2-MSP-NATIONAL` 和 `ORG2-MSP-GOVERNMENT` `，这反映了ORG2` 在`全国`销售通道中与`政府`监管通道中成员的信任根是不同的。
+由于组织及其 MSP 之间的排他性关系，所以最好使用组织的名称命名 MSP，您会发现在大多数策略配置中都采用了这种约定。例如，组织 `ORG1` 可能有一个名为 `ORG1-MSP` 之类的 MSP。在某些情况下，组织可能需要多个成员组，例如，通道用于在组织之间执行完全不同的业务功能。在这些情况下，有多个 MSP 并相应地命名是有意义的，例如，`ORG2-MSP-NATIONAL` 和 `ORG2-MSP-GOVERNMENT` ，这反映了 `ORG2` 在`全国`销售通道中与`政府`监管通道中成员的信任根是不同的。
 
 ![MSP1](./membership.diagram.3.png)
 
 *一个组织有两种不同的 MSP 配置。第一个配置显示了 MSP 和组织之间的典型关系——单个 MSP 定义了组织的成员列表。在第二种配置中，不同的 MSP 用于表示具有国家、国际和政府关联的不同组织组。*
-
 
 #### "组织的单位以及 MSP
 
@@ -29,103 +28,29 @@
 
 稍后我们将看到，OU 怎样帮助控制组织中被认为是区块链网络成员的部分。例如，只有来自 `ORG1-MANUFACTURING` OU 的身份才能访问通道，而 `ORG1-DISTRIBUTION` 不能。
 
-最后，尽管这是对 OU 的轻微滥用，但有时它们可以被联盟中的不同组织用来区分彼此。在这种情况下，不同的组织使用相同的根 CA 和中间 CA 作为它们的信任链，但是分配 OU 字段来标识每个组织的成员。稍后我们还将看到如何配置 MSP 来实现这一点。"
-
+最后，尽管这是对 OU 的轻微滥用，但有时它们可以被联盟中的不同组织用来区分彼此。在这种情况下，不同的组织使用相同的根 CA 和中间 CA 作为它们的信任链，但是分配 OU 字段来标识每个组织的成员。稍后我们还将看到如何配置 MSP 来实现这一点。
 
 ### 本地和通道 MSP
 
-MSPs appear in two places in a blockchain network: channel configuration
-(**channel MSPs**), and locally on an actor's premise (**local MSP**). **Local MSPs are
-defined for clients (users) and for nodes (peers and orderers)**. Node local MSPs define
-the permissions for that node (who the peer admins are, for example). The local MSPs
-of the users allow the user side to authenticate itself in its transactions as a member
-of a channel (e.g. in chaincode transactions), or as the owner of a specific role
-into the system (an org admin, for example, in configuration transactions).
+在区块链网络中，MSP 出现在两个位置：通道配置（**通道 MSP**）和参与者本地（**本地 MSP**）。**本地 MSP 是为客户端（用户）和节点（Peer 节点和排序节点）定义的**。节点本地 MSP 为该节点定义权限（例如，节点管理员是谁）。用户的本地 MSP 允许用户端在其交易中作为通道的成员（例如在链码交易中）或作为系统中特定角色的所有者（例如在配置交易中的某组织管理员）对自己进行身份验证。
 
-在区块链网络中，MSP 出现在两个位置：通道配置（通道 MSP）和在参与者的前提下的本地位置（本地 MSP）。本地 MSP "
-"是为客户端（用户）和节点（peer 节点和排序节点）定义的。节点本地 MSP 为该节点定义权限（例如，节点管理员是谁）。用户的本地 MSP "
-"允许用户端在其交易中作为通道的成员（例如在链码交易中）或作为系统中特定角色的所有者（例如在配置交易中的某组织管理员）对自己进行身份验证。"
+**每个节点和用户都必须定义一个本地 MSP**，因为它定义了谁拥有该级别的管理或参与权（节点管理员不一定是通道管理员，反之亦然）。
 
+相反，**通道 MSP 在通道级别定义管理和参与权**。每个参与通道的组织都必须为其定义一个 MSP。通道上的 Peer 节点和排序节点将共享通道 MSP，因此能够正确地对通道参与者进行身份验证。这意味着，如果组织希望加入通道，则需要在通道配置中包含一个包含组织成员信任链的 MSP。否则，来自这个组织身份的交易将被拒绝。
 
-**Every node and user must have a local MSP defined**, as it defines who has
-administrative or participatory rights at that level (peer admins will not necessarily
-be channel admins, and vice versa).
-
-每个节点和用户都必须定义一个本地 MSP，因为它定义了谁拥有该级别的管理或参与权（节点管理员不一定是通道管理员，反之亦然）。"
-
-
-In contrast, **channel MSPs define administrative and participatory rights at the
-channel level**. Every organization participating in a channel must have an MSP
-defined for it. Peers and orderers on a channel will all share the same view of channel
-MSPs, and will therefore be able to correctly authenticate the channel participants.
-This means that if an organization wishes to join the channel, an MSP incorporating
-the chain of trust for the organization's members would need to be included in the
-channel configuration. Otherwise transactions originating from this organization's
-identities will be rejected.
-
-相反，通道 MSP 在通道级别定义管理和参与权。每个参与通道的组织都必须为其定义一个 MSP。通道上的 peer 节点和排序节点将共享通道 MSP "
-"的相同视图，因此能够正确地对通道参与者进行身份验证。这意味着，如果组织希望加入通道，则需要在通道配置中包含一个包含组织成员信任链的 "
-"MSP。否则，来自这个组织身份的交易将被拒绝。"
-
-
-The key difference here between local and channel MSPs is not how they function
---- both turn identities into roles --- but their **scope**.
-
-本地和通道 MSP 之间的关键区别不在于它们如何工作——它们都将身份转换为角色——而在于它们的作用域。"
-
+本地和通道 MSP 之间的关键区别不在于它们如何工作（它们都将身份转换为角色）而在于它们的**作用域**。
 
 <a name="msp2img"></a>
 
 ![MSP2](./membership.diagram.4.png)
 
-*Local and channel MSPs. The trust domain (e.g., the organization) of each
-peer is defined by the peer's local MSP, e.g., ORG1 or ORG2. Representation
-of an organization on a channel is achieved by adding the organization's MSP to
-the channel configuration. For example, the channel of this figure is managed by
-both ORG1 and ORG2. Similar principles apply for the network, orderers, and users,
-but these are not shown here for simplicity.*
+*本地和通道 MSP。每个节点的信任域（例如组织）由节点的本地 MSP（例如 ORG1 或 ORG2）定义。通过将组织的 MSP 添加到通道配置中，可以表示组织加入了通道。例如，此图中的通道由 ORG1 和 ORG2 管理。类似的原则也适用于网络、排序节点和用户，但是为了简单起见，这里没有显示这些原则。*
 
-本地和通道 MSP。每个节点的信任域（例如组织）由节点的本地 MSP （例如 ORG1 或 ORG2 ）定义。通过将组织的 MSP "
-"添加到通道配置中，可以表示组织加入了通道。例如，此图中的通道由 ORG1 和 ORG2 "
-"管理。类似的原则也适用于网络、排序节点和用户，但是为了简单起见，这里没有显示这些原则。"
+通过查看区块链管理员安装和实例化智能合约时发生的情况，您可能会发现了解如何使用本地和通道 MSP 很有帮助，如[上图](#msp2img)所示。
 
+管理员 `B` 使用存储在本地 MSP 的 `RCA1` 颁发的身份连接到 Peer 节点。当 `B` 试图在 Peer 节点上安装智能合约时，Peer 节点检查其本地 MSP `ORG1-MSP`，以验证 `B` 的身份确实是 `ORG1` 的成员。验证成功后才会允许安装。随后，`B` 希望在通道上实例化智能合约。因为这是一个通道操作，所以通道上的所有组织都必须同意。因此，Peer 节点必须在成功提交此命令之前检查通道的 MSP。（其他事情也必须发生，但现在先集中精力做上面的事情。）
 
-You may find it helpful to see how local and channel MSPs are used by seeing
-what happens when a blockchain administrator installs and instantiates a smart
-contract, as shown in the [diagram above](#msp2img).
-
-通过查看区块链管理员安装和实例化智能合约时发生的情况，您可能会发现了解如何使用本地和通道 MSP 很有帮助，如上图所示。"
-
-
-An administrator `B` connects to the peer with an identity issued by `RCA1`
-and stored in their local MSP. When `B` tries to install a smart contract on
-the peer, the peer checks its local MSP, `ORG1-MSP`, to verify that the identity
-of `B` is indeed a member of `ORG1`. A successful verification will allow the
-install command to complete successfully. Subsequently, `B` wishes
-to instantiate the smart contract on the channel. Because this is a channel
-operation, all organizations on the channel must agree to it. Therefore, the
-peer must check the MSPs of the channel before it can successfully commit this
-command. (Other things must happen too, but concentrate on the above for now.)
-
-管理员 B 使用 RCA1 颁发的身份连接到 peer 节点，并将其存储在本地 MSP 中。当 B 试图在 peer 节点上安装智能合约时，peer "
-"节点检查其本地 MSP ORG1-MSP，以验证 B 的身份确实是 ORG1 的成员。成功的验证将允许安装命令成功完成。随后，B "
-"希望在通道上实例化智能合约。因为这是一个通道操作，所以通道上的所有组织都必须同意它。因此，peer 节点必须在成功提交此命令之前检查通道的 "
-"MSP。（其他事情也必须发生，但现在先集中精力做上面的事情。）"
-
-**Local MSPs are only defined on the file system of the node or user** to which
-they apply. Therefore, physically and logically there is only one local MSP per
-node or user. However, as channel MSPs are available to all nodes in the
-channel, they are logically defined once in the channel configuration. However,
-**a channel MSP is also instantiated on the file system of every node in the
-channel and kept synchronized via consensus**. So while there is a copy of each
-channel MSP on the local file system of every node, logically a channel MSP
-resides on and is maintained by the channel or the network.
-
-本地 MSP 只在它们应用到的节点或用户的文件系统上的定义。因此，在物理和逻辑上，每个节点或用户只有一个本地 MSP。但是，由于通道 MSP "
-"对通道中的所有节点都可用，所以它们在通道配置中逻辑上定义一次。然而，通道 MSP "
-"也在通道中每个节点的文件系统上实例化，并通过协商一致保持同步。因此，虽然每个节点的本地文件系统上都有每个通道 MSP 的副本，但从逻辑上讲，通道 MSP"
-" 驻留在通道或网络上并由通道或网络维护。"
-
+**本地 MSP 只在它们应用到的节点或用户的文件系统上的定义**。因此，在物理和逻辑上，每个节点或用户只有一个本地 MSP。但是，由于通道 MSP 对通道中的所有节点都可用，所以在逻辑上他们只在通道配置中定义一次。然而，**通道 MSP 也在通道中每个节点的文件系统上实例化，并通过协商一致保持同步**。因此，虽然每个节点的本地文件系统上都有每个通道 MSP 的副本，但从逻辑上讲，通道 MSP 驻留在通道或网络上并由通道或网络维护。
 
 ### MSP 层级
 
