@@ -54,219 +54,53 @@
 
 ### MSP 层级
 
-The split between channel and local MSPs reflects the needs of organizations
-to administer their local resources, such as a peer or orderer nodes, and their
-channel resources, such as ledgers, smart contracts, and consortia, which
-operate at the channel or network level. It's helpful to think of these MSPs
-as being at different **levels**, with **MSPs at a higher level relating to
-network administration concerns** while **MSPs at a lower level handle
-identity for the administration of private resources**. MSPs are mandatory
-at every level of administration --- they must be defined for the network,
-channel, peer, orderer, and users.
-
-通道和本地 MSP 之间的分离反映了组织管理其本地资源（如 peer "
-"节点或排序节点）和通道资源（如账本、智能合约和联盟）的需求，这些资源在通道或网络级别运行。将这些 MSP 看作是不同级别的是有帮助的，MSP "
-"处于较高的级别，与网络管理相关，而处于较低级别的 MSP 处理私有资源管理的身份。MSP 在每个管理级别都是强制性的——必须为网络、通道、peer "
-"节点、排序节点和用户定义它们。"
-
+通道和本地 MSP 之间的分离反映了组织管理其本地资源（如 Peer 节点或排序节点）和通道资源（如账本、智能合约和联盟）的需求，这些资源在通道或网络级别运行。将这些 MSP 看作是不同**级别**的是有帮助的，处于**较高级别的 MSP 与网络管理相关**，而**处于较低级别的 MSP 处理私有资源管理的身份**。MSP 在每个管理级别都是强制性的——必须为网络、通道、Peer 节点、排序节点和用户定义它们。
 
 ![MSP3](./membership.diagram.2.png)
 
-*MSP Levels. The MSPs for the peer and orderer are local, whereas the MSPs for a
-channel (including the network configuration channel) are shared across all
-participants of that channel. In this figure, the network configuration channel
-is administered by ORG1, but another application channel can be managed by ORG1
-and ORG2. The peer is a member of and managed by ORG2, whereas ORG1 manages the
-orderer of the figure. ORG1 trusts identities from RCA1, whereas ORG2 trusts
-identities from RCA2. Note that these are administration identities, reflecting
-who can administer these components. So while ORG1 administers the network,
-ORG2.MSP does exist in the network definition.*
+*MSP 的级别。Peer 节点和排序节点的 MSP 是本地的，而通道（包括网络配置通道）的 MSP 是对该通道的所有参与者共享的。在这个图中，网络配置通道由 ORG1 管理，但是另一个应用程序通道可以由 ORG1 和 ORG2 管理。Peer 节点是 ORG2 的成员，由 ORG2 管理，而 ORG1 管理图中的排序节点。ORG1 信任来自 RCA1 的身份，而 ORG2 信任来自RCA2 的身份。注意，这些是管理员身份，反映了谁可以管理这些组件。所以当 ORG1 管理网络时，ORG2.MSP 也要在网络定义中。*
 
-MSP 的级别。peer 节点和排序节点的 MSP 是本地的，而通道（包括网络配置通道）的 MSP "
-"是对该通道的所有参与者共享的。在这个图中，网络配置通道由 ORG1 管理，但是另一个应用程序通道可以由 ORG1 和 ORG2 管理。peer 节点是 "
-"ORG2 的成员，由 ORG2 管理，而 ORG1 管理图中的排序节点。ORG1 信任来自 RCA1 的身份，而 ORG2 "
-"信任来自RCA2的身份。注意，这些是管理员身份，反映了谁可以管理这些组件。所以当 ORG1 管理网络时，ORG2.MSP 确不存在于网络定义中。"
+* **网络 MSP** ：一个网络的配置文件，通过定义参与组织的 MSP 定义了谁是这个网络中的成员，并且定义了这些成员中的哪些被授权来进行管理相关的任务 （比如，创建一个通道）。
 
+* **通道 MSP**：对于一个通道来说，维护它的成员的 MSP 非常重要。一个通道在一个指定的一系列组织间提供了一个私有的通信方式，这些组织又对这个通道进行管理。在这个通道的 MSP 的上下文中被解释执行的通道策略定义了谁有能力来参与到在这个通道上的某些操作，比如，添加组织或者实例化链码。注意，在管理一个通道和管理网络配置通道（或者任何其他的通道）之间没有必然联系。管理的权利存在于被管理的事务的范围内（除非规则已经被制定，否则查看下边对于 `ROLE` 属性的讨论）。
 
- * **Network MSP:** The configuration of a network defines who are the
- members in the network --- by defining the MSPs of the participant organizations
- --- as well as which of these members are authorized to perform
- administrative tasks (e.g., creating a channel).
+* **Peer 节点 MSP**：这个本地 MSP 是在每个节点的文件系统上定义的，并且对于每个节点都有一个单独的 MSP 实例。概念上讲，它同通道 MSP 执行着完全一样的操作，但是这些操作限制在仅仅能够被应用到它被定义的那个节点上。在节点上安装一个链码，就是使用节点的本地 MSP 来判定谁被授权进行的一个操作的例子。
 
-网络 MSP ：一个网络的配置文件，定义了谁是这个网络中的成员 --- 通过定义参与组织的 MSP --- "
-"并且定义了这些成员中的哪些被授权来进行管理相关的任务 （比如，创建一个通道）。"
-
-
- * **Channel MSP:** It is important for a channel to maintain the MSPs of its members
- separately. A channel provides private communications between a particular set of
- organizations which in turn have administrative control over it. Channel policies
- interpreted in the context of that channel's MSPs define who has ability to
- participate in certain action on the channel, e.g., adding organizations, or
- instantiating chaincodes. Note that there is no necessary relationship between
- the permission to administrate a channel and the ability to administrate the
- network configuration channel (or any other channel). Administrative rights
- exist within the scope of what is being administrated (unless the rules have
- been written otherwise --- see the discussion of the `ROLE` attribute below).
-
-通道 MSP：对于一个通道来说，分别维护它的成员的 MSP "
-"非常重要。一个通道在一个指定的一系列组织间提供了一个私有的通信方式，这些组织又对这个通道进行管理。在这个通道的 MSP  "
-"的上下文中被解释执行的通道策略定义了谁有能力来参与到在这个通道上的某些操作中， "
-"比如，添加组织或者实例化链码。注意，在管理一个通道的权限和管理网络配置通道（或者任何其他的通道）之间没有必然的联系。管理的权利存在于被管理的事务的范围内（除非规则已经被制定，否则"
-" --- 查看下边对于 ROLE 属性的讨论）。"
-
-
- * **Peer MSP:** This local MSP is defined on the file system of each peer and there is a
- single MSP instance for each peer. Conceptually, it performs exactly the same function
- as channel MSPs with the restriction that it only applies to the peer where it is defined.
- An example of an action whose authorization is evaluated using the peer's local MSP is
- the installation of a chaincode on the peer.
-
-Peer 节点 MSP：这个本地 MSP 是在每个节点的文件系统上定义的，并且对于每个节点都有一个单独的 MSP 实例。 概念上讲，它同通道 MSP "
-"执行着完全一样的操作，但是这些操作限制在仅仅能够被应用到它被定义的那个节点上。 对于使用节点的本地 MSP "
-"来判定谁被授权进行的一个操作的例子就是在节点上安装一个链码。"
-
-
- * **Orderer MSP:** Like a peer MSP, an orderer local MSP is also defined on the file system
- of the node and only applies to that node. Like peer nodes, orderers are also owned by a single
- organization and therefore have a single MSP to list the actors or nodes it trusts.
-
-排序节点 MSP： 像一个 peer 节点 MSP，一个排序节点的本地 MSP 也是在节点的文件系统上定义的，并且只会应用于这个节点。 就像 peer "
-"节点，排序节点也是由一个单独的组织所有，因此具有一个单独的 MSP 来列出它所信任的操作者或者节点。"
-
+* **排序节点 MSP**： 就像 Peer 节点 MSP 一样，一个排序节点的本地 MSP 也是在节点的文件系统上定义的，并且只会应用于这个节点。排序节点也是由一个单独的组织所有，因此具有一个单独的 MSP 来列出它所信任的操作者或者节点。
 
 ### MSP 结构
 
-So far, you've seen that the most important element of an MSP are the specification
-of the root or intermediate CAs that are used to establish an actor's or node's
-membership in the respective organization. There are, however, more elements that are
-used in conjunction with these two to assist with membership functions.
-
-目前为止，你所看到的对于一个 MSP 最为重要的元素就是对于根或者中间 CA 的声明，这些 CA "
-"被用来在对应的组织中建立一个参与者或者节点的成员身份。然而这里还有更多的元素同这两个元素一起被用来帮助成员相关的功能。"
-
+目前为止，你所看到的对于一个 MSP 最为重要的元素就是对于根或者中间 CA 的声明，这些 CA 被用来在对应的组织中建立一个参与者或者节点的成员身份。然而这里还有更多的元素同这两个元素一起来辅助成员相关的功能。
 
 ![MSP4](./membership.diagram.5.png)
 
-*The figure above shows how a local MSP is stored on a local filesystem. Even though
-channel MSPs are not physically structured in exactly this way, it's still a helpful
-way to think about them.*
+*上面的图显示了本地 MSP 是如何存储在本地文件系统中的。尽管通道 MSP 的物理结构不是完全按照这种方式构建的，但是这样考虑它们仍然是一种有用的方式。*
 
-上面的图显示了本地 MSP 是如何存储在本地文件系统中的。尽管通道 MSP 的物理结构不是完全按照这种方式构建的，但是这样考虑它们仍然是一种有用的方式。"
-
-
-As you can see, there are nine elements to an MSP. It's easiest to think of these elements
-in a directory structure, where the MSP name is the root folder name with each
-subfolder representing different elements of an MSP configuration.
-
-正如您所看到的，MSP 有九个元素。在目录结构中考虑这些元素最简单，其中 MSP 名称是根文件夹名称，每个子文件夹表示 MSP 配置的一个不同元素。"
-
-
-Let's describe these folders in a little more detail and see why they are important.
+正如您所看到的，MSP 有九个元素。在目录结构中考虑这些元素最简单，其中 MSP 名称是根文件夹名称，每个子文件夹表示 MSP 配置的一个不同元素。
 
 让我们更详细地描述这些文件夹，看看它们为什么重要。
 
-* **Root CAs:** This folder contains a list of self-signed X.509 certificates of
-  the Root CAs trusted by the organization represented by this MSP.
-  There must be at least one Root CA X.509 certificate in this MSP folder.
+* **根 CA**：这个文件夹包含了一个这个 MSP 所代表的组织所信任的根证书的自签名 X.509 证书列表。在这个 MSP 文件夹中至少要有一个根 CA X.509 证书。
 
-根 CA：这个文件夹包含了一个这个 MSP 所代表的组织所信任的根证书的自签名 X.509 证书列表。 在这个 MSP 文件夹中至少要有一个根 CA "
-"X.509 证书。
+  这是最重要的一个文件夹，因为它标识了可以被认为是对应组织的成员的所有其他的证书的来源 CA。
 
-  This is the most important folder because it identifies the CAs from
-  which all other certificates must be derived to be considered members of the
-  corresponding organization.
+* **中间 CA**：这个文件夹包含了由这个组织所信任的中间 CA 对应的 X.509 证书列表。每个证书必须要由这个 MSP 中的一个根 CA 来签发，或者有一个中间 CA 来签发，这个中间 CA 的签发 CA 的链条最终能够导向回一个授信的根 CA。
 
-这是最重要的一个文件夹，因为它标识了可以被认为是对应组织的成员的所有其他的证书的来源 CA。"
+  一个中间 CA 可能代表了该组织的一个不同的分支（就像对于 `ORG1` 会有 `ORG1-MANUFACTURING` 和 `ORG1-DISTRIBUTION`）， 或者是这个组织自身（比如就像一个商业的 CA 被用来作为组织的身份管理这样的一个情况）。在后边这个情况中，中间 CA 可以被用来代表组织的分支。从[这里](../msp.html)你可能找到关于对于 MSP 配置的最佳实践的更多信息。注意，对于一个工作网络来说，也有可能没有任何的中间 CA，这种情况下，这个文件夹就是空的。
 
+  就像根 CA 文件夹一样，这个文件夹定义了能够被认为是某个组织的成员的证书所来自的 CA。
 
-* **Intermediate CAs:** This folder contains a list of X.509 certificates of the
-  Intermediate CAs trusted by this organization. Each certificate must be signed by
-  one of the Root CAs in the MSP or by an Intermediate CA whose issuing CA chain ultimately
-  leads back to a trusted Root CA.
+* **组织单元 （OU）**：这些定义在 `$FABRIC_CFG_PATH/msp/config.yaml` 文件中，并且包含了组织单元的一个列表，他们的成员被认为是由这个 MSP 所代表的组织的一部分。这个在当你想要将组织的成员限定在仅具有某个指定的 OU 的成员（这个身份信息是由 MSP 指定的 CA 签发的）时，它是很有用的。
 
-中间 CA：这个文件夹包含了由这个组织所信任的中间 CA 对应的 X.509 证书列表。每个证书必须要由这个 MSP 中的一个根 CA "
-"来签发，或者有一个中间 CA 来签发，这个中间 CA 的签发 CA 的链条最终能够导向回一个授信的根 CA。"
+  指定 OU 是可选的。如果没有列出任何 OU，包含 MSP 的身份（由根 CA 和中间 CA 文件夹标识）都会被认为是组织的成员。
 
+* **管理员**：这个文件夹包含了定义对于该组织来讲具有管理员角色的操作者的所有身份信息的列表。对于标准的 MSP 类型，在这个列表中应该有一个或者多个 X509 证书。
 
-  An intermediate CA may represent a different subdivision of the organization
-  (like `ORG1-MANUFACTURING` and `ORG1-DISTRIBUTION` do for `ORG1`), or the
-  organization itself (as may be the case if a commercial CA is leveraged for
-  the organization's identity management). In the latter case intermediate CAs
-  can be used to represent organization subdivisions. [Here](../msp.html) you
-  may find more information on best practices for MSP configuration. Notice, that
-  it is possible to have a functioning network that does not have an Intermediate
-  CA, in which case this folder would be empty.
+  如果一个操作者具有一个管理者的角色但是它却不能管理某个资源，这是没有意义的！对于一个给定的身份所具有的实际的权利以及对于系统的相关的管理是由管理系统资源的策略所决定的。比如，一个通道策略可能会指明 `ORG1-MANUFACTURING` 管理员有权利来向通道中添加新的组织，然而 `ORG1-DISTRIBUTION` 管理员却没有这个权利。
 
-一个中间 CA 可能代表了该组织的一个不同的分支（就像对于  ORG1 会有 ORG1-MANUFACTURING 和 "
-"ORG1-DISTRIBUTION）， 或者是这个组织自身（比如就像一个商业的 CA 被用来作为组织的身份管理这样的一个情况）。在后边这个情况中，中间 "
-"CA 可以被用来代表组织的分支。从这里你可能找到关于对于 MSP 配置的最佳实践的更多信息。注意，对于一个可工作的网络来说，没有任何的中间 CA "
-"是可能的，对于这种情况，这个文件夹就是空的。"
+  尽管一个 X.509 证书拥有 `ROLE` 属性（具体来讲，比如一个操作者是一个 `admin`），这也指的是在它的组织而不是在这个区块链网络上的一个操作者的角色。这个跟 OU 属性的目的是类似的，可以参考在组织中的操作者。
 
-
-  Like the Root CA folder, this folder defines the CAs from which certificates must be
-  issued to be considered members of the organization.
-
-
-就像根 CA 文件夹一样，这个文件夹定义了能够被认为是某个组织的成员的证书所来自的 CA。"
-
-
-* **Organizational Units (OUs):** These are listed in the `$FABRIC_CFG_PATH/msp/config.yaml`
-  file and contain a list of organizational units, whose members are considered
-  to be part of the organization represented by this MSP. This is particularly
-  useful when you want to restrict the members of an organization to the ones
-  holding an identity (signed by one of MSP designated CAs) with a specific OU
-  in it.
-
-组织单元 （OU）这些在 $FABRIC_CFG_PATH/msp/config.yaml "
-"文件中被列出来，并且包含了组织单元的一个列表，他们的成员被认为是由这个 MSP 所代表的组织的一部分。这个在当你想要将组织的成员限定在那些具有某个指定的"
-" OU 在其身份信息中的成员（这个身份信息是由 MSP 指定的 CA 签发的）是很有用的。"
-
-
-
-  Specifying OUs is optional. If no OUs are listed, all the identities that are part of
-  an MSP --- as identified by the Root CA and Intermediate CA folders --- will be considered
-  members of the organization.
-
-指定 OU 是可选的。如果没有列出任何的的 OU，对于作为一个 MSP 的一部分的所有身份信息 --- 作为由根 CA 和中间 CA 文件夹标识的 "
-"--- 将会被认为是组织的成员。
-
-
-* **Administrators:** This folder contains a list of identities that define the
-  actors who have the role of administrators for this organization. For the standard MSP type,
-  there should be one or more X.509 certificates in this list.
-
-管理员：这个文件夹包含了定义对于该组织来讲具有管理员角色的操作者的所有身份信息的列表。对于标准的 MSP 类型， 在这个列表中应该有一个或者多个 "
-"X509 证书。
-
-  It's worth noting that just because an actor has the role of an administrator it doesn't
-  mean that they can administer particular resources! The actual power a given identity has
-  with respect to administering the system is determined by the policies that manage system
-  resources. For example, a channel policy might specify that `ORG1-MANUFACTURING`
-  administrators have the rights to add new organizations to the channel, whereas the
-  `ORG1-DISTRIBUTION` administrators have no such rights.
-
-如果一个操作者具有一个管理者的角色但是它却不能管理某个资源，那这样就没有任何意义了！对于一个给定的身份所具有的实际的权利以及对于系统的相关的管理是由管理系统资源的策略所决定的。比如，一个通道策略可能会指明"
-" ORG1-MANUFACTURING 管理员有权利来向通道中添加新的组织，然而 ORG1-DISTRIBUTION 管理员却没有这个权利。"
-
-
-
-  Even though an X.509 certificate has a `ROLE` attribute (specifying, for example, that
-  an actor is an `admin`), this refers to an actor's role within its organization
-  rather than on the blockchain network. This is similar to the purpose of
-  the `OU` attribute, which --- if it has been defined --- refers to an actor's place in
-  the organization.
-
-  The `ROLE` attribute **can** be used to confer administrative rights at the channel level
-  if the policy for that channel has been written to allow any administrator from an organization
-  (or certain organizations) permission to perform certain channel functions (such as
-  instantiating chaincode). In this way, an organizational role can confer a network role.
-
-尽管这样，一个 X.509 证书具有一个 ROLE 属性（具体来讲，比如一个操作者是一个 "
-"admin），这个指的是在它的组织而不是在这个区块链网络上的一个操作者的角色。这个跟 OU 属性的目的是类似的 —— 如果它被定义了的话 —— "
-"参考在组织中的操作者。
-
-如果这个通道已经写入了这个允许任何来自于一个组织（(或者某些组织） 的管理员的权限来执行某个通道方法（比如初始化链码） 的策略的话，这个 ROLE "
-"属性能够被用来在通道级别授予管理者权限。
+  如果这个通道已经写入了这个允许任何来自于一个组织（(或者某些组织）的管理员来执行某个通道方法（比如初始化链码）的策略的话，这个 `ROLE` 属性才**能够**拥有通道级别的管理权限。这样，这个组织才被赋予了网络级别的决策。
 
 * **Revoked Certificates:** If the identity of an actor has been revoked,
   identifying information about the identity --- not the identity itself --- is held
@@ -275,9 +109,7 @@ Let's describe these folders in a little more detail and see why they are import
   whenever the X.509 certificate is being used to make sure the certificate has not
   been revoked.
 
-  撤销证书： 如果一个参与者的身份信息被收回，有关这个身份信息的标识信息——不是指身份信息本身——被放置于这个文件夹中。对于基于 X.509 "
-"身份信息，这些标识符是以主体密钥标识符 （SKI） 以及权限访问标识符（AKI）的形式的字符串对，并且会在 X.509 "
-"证书被使用的时候被检查，以确保证书没有被收回。
+  * **撤销证书**： 如果一个参与者的身份信息被收回，有关这个身份信息的标识信息——不是指身份信息本身——被放置于这个文件夹中。对于基于 X.509 身份信息，这些标识符是以主体密钥标识符 （SKI） 以及权限访问标识符（AKI）的形式的字符串对，并且会在 X.509 证书被使用的时候被检查，以确保证书没有被收回。
 
 
   This list is conceptually the same as a CA's Certificate Revocation List (CRL),
