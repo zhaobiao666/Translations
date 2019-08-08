@@ -1,6 +1,6 @@
 # 成员
 
-如果你已经阅读了[身份](../identity/identity.html)文档，那么你应该已经看到了一个 PKI 是如何能够通过一个信任的链条来提供一个可验证的身份信息的。现在让我们看一下这些身份信息是如何被用来代表这些区块链网络中的可信任的成员的。"
+如果你已经阅读了[身份](../identity/identity.html)文档，那么你应该已经看到了一个 PKI 是如何能够通过一个信任的链条来提供一个可验证的身份信息的。现在让我们看一下这些身份信息是如何被用来代表这些区块链网络中的可信任的成员的。
 
 这就需要**成员服务**提供者（MSP）发挥作用了，**它标识所信任的根 CA 和中间 CA 定义信任域的成员，例如，一个组织**。通过列出其成员的身份，或者通过标识出哪些 CA 授权为他们的成员发行有效身份，或者通过两者的结合。最后一种方法比较常用。
 
@@ -22,7 +22,7 @@
 
 *一个组织有两种不同的 MSP 配置。第一个配置显示了 MSP 和组织之间的典型关系——单个 MSP 定义了组织的成员列表。在第二种配置中，不同的 MSP 用于表示具有国家、国际和政府关联的不同组织组。*
 
-#### "组织的单位以及 MSP
+#### 组织的单位以及 MSP
 
 一个组织通常被划分为多个**组织单元**（OU），每个单元都有一组特定的职责。例如，`ORG1` 组织可能同时具有 `ORG1-MANUFACTURING` 和 `ORG1-DISTRIBUTION` OU 来反映这些独立的业务线。当 CA 发出 X.509 证书时，证书中的 `OU` 字段指定身份所属的业务线。
 
@@ -102,113 +102,31 @@
 
   如果这个通道已经写入了这个允许任何来自于一个组织（(或者某些组织）的管理员来执行某个通道方法（比如初始化链码）的策略的话，这个 `ROLE` 属性才**能够**拥有通道级别的管理权限。这样，这个组织才被赋予了网络级别的决策。
 
-* **Revoked Certificates:** If the identity of an actor has been revoked,
-  identifying information about the identity --- not the identity itself --- is held
-  in this folder. For X.509-based identities, these identifiers are pairs of strings known as
-  Subject Key Identifier (SKI) and Authority Access Identifier (AKI), and are checked
-  whenever the X.509 certificate is being used to make sure the certificate has not
-  been revoked.
+* **撤销证书**：如果一个参与者的身份信息被撤销，有关这个身份信息的标识信息（不是指身份信息本身）会被放置于这个文件夹中。对于基于 X.509 的身份信息，这些标识符是主体密钥标识符 （Subject Key Identifier，SKI） 以及权限访问标识符（Authority Access Identifier，AKI）形式的字符串对，并且会在 X.509 证书被使用的时候被检查，以确保证书没有被收回。
 
-  * **撤销证书**： 如果一个参与者的身份信息被收回，有关这个身份信息的标识信息——不是指身份信息本身——被放置于这个文件夹中。对于基于 X.509 身份信息，这些标识符是以主体密钥标识符 （SKI） 以及权限访问标识符（AKI）的形式的字符串对，并且会在 X.509 证书被使用的时候被检查，以确保证书没有被收回。
+  尽管这个列表在概念上跟 CA 的证书回收列表 （CRL） 是一样的，但它也和从组织中收回成员有关。最后，本地或者通道 MSP 的管理员，能够通过广播这个 CA 更新过的 CRL 的方式快速地从一个组织中撤销一个参与者或者节点，这个 CA 就是颁发这个要撤销的证书的 CA。这个“列表”是可选的。只有在证书要撤销的时候才会用到。
 
+* **节点身份信息**：这个文件夹包含了节点的身份信息，比如，加密材料（包括 KeyStore 的内容）将会允许节点在被发送到该通道和网络的其他参与者的信息中来为自己授权。对于基于 X.509 的身份信息， 这个文件夹包含了一个 **X.509 证书**。这个证书会被 Peer 节点会放置到一笔交易提案的响应中，比如，来表明这个节点已经为这笔交易背书，这个可以在接下来的验证阶段同交易的背书策略一起来进行验证。
 
-  This list is conceptually the same as a CA's Certificate Revocation List (CRL),
-  but it also relates to revocation of membership from the organization. As a result,
-  the administrator of an MSP, local or channel, can quickly revoke an actor or node
-  from an organization by advertising the updated CRL of the CA the revoked certificate
-  as issued by. This "list of lists" is optional. It will only become populated
-  as certificates are revoked.
+  这个文件夹主要在本地 MSP 中，而且必须有一个节点的 X.509 证书。这不适用与通道 MSP 。
 
-这个列表在概念上跟一个 CA 的证书回收列表 （CRL） 是一样的，但是它也同从组织中收回成员有关。最后，本地或者通道的一个 MSP "
-"的管理员，能够以广播这个 CA 的更新过的 CRL 的方式，快速地从一个组织中撤销一个参与者或者节点，这个 CA 就是颁发这个要撤销的证书的 CA。"
+* **私钥的 KeyStore**：这个文件夹是为了 Peer 节点或者排序节点（或者在客户端的本地 MSP 中） 的本地 MSP 定义的，并且包含了节点的**签名秘钥**。这个秘钥与**节点身份信息**文件夹里节点身份密钥文件相匹配，并且会用来对数据进行签名，比如作为背书阶段的一部分，会对一个交易提案的响应进行签名。
 
+  这个文件夹对于本地 MSP 是必须的，并且必须要包含一个私钥。很显然，这个文件夹的访问权限，必须限定在于对于这个节点有管理权限的用户。
 
+  一个**通道 MSP** 的配置信息中不会包含这个文件夹，因为通道 MSP 仅仅是为了提供身份信息验证的功能，而不是为了提供签名的能力。
 
-* **Node Identity:** This folder contains the identity of the node, i.e.,
-  cryptographic material that --- in combination to the content of `KeyStore` --- would
-  allow the node to authenticate itself in the messages that is sends to other
-  participants of its channels and network. For X.509 based identities, this
-  folder contains an **X.509 certificate**. This is the certificate a peer places
-  in a transaction proposal response, for example, to indicate that the peer has
-  endorsed it --- which can subsequently be checked against the resulting
-  transaction's endorsement policy at validation time.
+  **TLS 根 CA**：这个文件夹包含了一个自签名的 X.509 证书列表，这个 X.509 证书是由这个组织信任的根 CA 颁发的证书，这是**为了 TLS 通信**。一个 TLS 通信的例子就是，为了接受到新的账本，一个 Peer 节点要连接到个排序节点。
 
-  This folder is mandatory for local MSPs, and there must be exactly one X.509 certificate
-  for the node. It is not used for channel MSPs.
-
-节点身份信息：这个文件夹包含了节点的身份信息，比如，加密材料——同 KeyStore "
-"的内容合并起来——将会允许节点在被发送到其他的该通道和网络的参与者的信息当中来为自己授权。对于基于 X.509 的身份信息， 这个文件夹包含了一个 "
-"X.509 "
-"证书。这是一个节点会放置到一笔交易提案的反馈中的证书，比如，来表述这个节点已经为它背书——这个可以在接下来的验证阶段同产生结果的交易的背书策略相比较来进行验证。"
-
-
-* **`KeyStore` for Private Key:** This folder is defined for the local MSP of a peer or
-  orderer node (or in an client's local MSP), and contains the node's **signing key**.
-  This key matches cryptographically the node's identity included in **Node Identity**
-  folder and is used to sign data --- for example to sign a transaction proposal response,
-  as part of the endorsement phase.
-
-私钥的 KeyStore：这个文件夹是为了一个 peer 节点或者排序节点（或者在一个客户端的本地 MSP 中） 的本地 MSP "
-"来定义的，并且包含了节点的签名秘钥。这个秘钥与包含在节点身份信息文件夹里的节点的身份信息密钥文件相匹配，并且会被用来对数据提供签名——比如作为背书阶段的一部分，会对一个交易提案的反馈提供签名。"
-
-
-  This folder is mandatory for local MSPs, and must contain exactly one private key.
-  Obviously, access to this folder must be limited only to the identities of users who have
-  administrative responsibility on the peer.
-
-这个文件夹对于本地 MSP 是必须的，并且必须要包含一个私钥。很显然，对于这个文件夹的访问，必须要仅仅局限于对于这个节点有管理权限的用户的身份信息。"
-
-
-  Configuration of a **channel MSPs** does not include this folder, as channel MSPs
-  solely aim to offer identity validation functionalities and not signing abilities.
-
-一个通道 MSP 的配置信息不会包含这个文件夹，因为通道 MSP 仅仅是为了提供身份信息验证的功能，而不是为了提供签名的能力。"
-
-
-* **TLS Root CA:** This folder contains a list of self-signed X.509 certificates of the
-  Root CAs trusted by this organization **for TLS communications**. An example of a TLS
-  communication would be when a peer needs to connect to an orderer so that it can receive
-  ledger updates.
-
-  TLS 根 CA：这个文件夹包含了一个自签名的 X.509 证书列表，这个 X.509 证书是由这个组织信任的根 CA 颁发的证书，这是为了 TLS "
-"通信。一个 TLS 通信的例子就是当一个 peer 节点需要连接到一个排序节点， 所以他才能够接收到账本的更新。"
-
-
-  MSP TLS information relates to the nodes inside the network --- the peers and the
-  orderers, in other words, rather than the applications and administrations that
-  consume the network.
-
-  MSP TLS 信息跟在这个网络内部的节点有关联—— peer 节点和排序节点，换句话说，这个并不是指消费这个网络的应用程序和管理功能。"
-
-
-  There must be at least one TLS Root CA X.509 certificate in this folder.
+  MSP TLS 信息和网络内部的节点有关联，包括 Peer 节点和排序节点，换句话说，这个并不是指使用这个网络的应用程序和管理功能。
 
   在这个文件夹中必须至少有一个 TLS 根 CA X.509 证书。
 
+  **TLS 中间 CA**：这个文件夹包含了**在通信时**这个 MSP 所代表的的组织所信任的中间 CA 证书列表。这个文件夹在当商业 CA 用于一个组织的 TLS 证书时特别有用。跟成员的中间 CA 类似，指定中间 TLS CA 是可选的。
 
-* **TLS Intermediate CA:** This folder contains a list intermediate CA certificates
-  CAs trusted by the organization represented by this MSP **for TLS communications**.
-  This folder is specifically useful when commercial CAs are used for TLS certificates of an
-  organization. Similar to membership intermediate CAs, specifying intermediate TLS CAs is
-  optional.
+  关于 TLS 的更多信息，点击[这里](../enable_tls.html)。
 
-TLS 中间 CA：这个文件夹包含了一个中间证书 CA 的列表，这些 CA 被这个 MSP 所代表的的组织所信任， 这是为了 TLS "
-"通信。这个文件夹在当商业的 CA 被用于一个组织的 TLS 证书的时候特别有用。 跟成员的中间 CA 类似，指定中间 TLS CA 是可选的。"
-
-
-  For more information about TLS, click [here](../enable_tls.html).
-
-关于 TLS 的更多信息，点击这里。
-
-If you've read this doc as well as our doc on [Identity](../identity/identity.html)), you
-should have a pretty good grasp of how identities and membership work in Hyperledger Fabric.
-You've seen how a PKI and MSPs are used to identify the actors collaborating in a blockchain
-network. You've learned how certificates, public/private keys, and roots of trust work,
-in addition to how MSPs are physically and logically structured.
-
-如果你读过这个文档以及我们关于身份的文档，你应该对身份和会员如何在 Hyperledger Fabric 中工作有一个很好的理解。您已经了解了如何使用 "
-"PKI 和 MSP 来识别在区块链网络中协作的参与者。您已经了解了证书、公钥、私钥和信任根的工作原理，以及 MSP 的物理和逻辑结构。"
-
+如果你读过这个文档以及我们关于[身份](../identity/identity.html)的文档，你应该对身份和成员在 Hyperledger Fabric 中的作用有了很好的理解。您了解了如何使用 PKI 和 MSP 来识别在区块链网络中协作的参与者。您学习了证书、公钥、私钥和信任根的工作原理，以及 MSP 的物理和逻辑结构。
 
 <!---
 Licensed under Creative Commons Attribution 4.0 International License https://creativecommons.org/licenses/by/4.0/
