@@ -1,211 +1,98 @@
-# Ledger
+# 账本
 
-**Audience**: Architects, Application and smart contract developers,
-administrators
+**受众**：架构师、应用程序开发者和智能合约开发者、管理员
 
-A **ledger** is a key concept in Hyperledger Fabric; it stores important factual
-information about business objects; both the current value of the attributes of
-the objects, and the history of transactions that resulted in these current
-values.
+**账本**是 Hyperledger Fabric 中的一个重要概念，它存储有关业务对象的重要信息，包括对象属性的当前值和产生这些当前值的交易的历史。
 
-In this topic, we're going to cover:
+在这个主题中，我们将涉及：
 
-* [What is a Ledger?](#what-is-a-ledger?)
-* [Storing facts about business objects](#ledgers-facts-and-states)
-* [A blockchain ledger](#a-blockchain-ledger)
-* [The world state](#world-state)
-* [The blockchain data structure](#blockchain)
-* [How blocks are stored in a blockchain](#blocks)
-* [Transactions](#transactions)
-* [World state database options](#world-state-database-options)
-* [The **Fabcar** example ledger](#example-ledger-fabcar)
-* [Ledgers and namespaces](#namespaces)
-* [Ledgers and channels](#channels)
+* [什么是账本?](#what-is-a-ledger?)
+* [业务对象的实际存储](#ledgers-facts-and-states)
+* [区块链账本](#a-blockchain-ledger)
+* [世界状态](#world-state)
+* [区块链数据结构](#blockchain)
+* [区块链如何存储区块](#blocks)
+* [交易](#transactions)
+* [世界状态数据库选择](#world-state-database-options)
+* [Fabcar 示例账本](#example-ledger-fabcar)
+* [账本和命名空间](#namespaces)
+* [账本和通道](#channels)
 
-## What is a Ledger?
+## 什么是账本？
 
-A ledger contains the current state of a business as a journal of transactions.
-The earliest European and Chinese ledgers date from almost 1000 years ago, and
-the Sumerians had [stone
-ledgers](http://www.sciencephoto.com/media/686227/view/accounting-ledger-sumerian-cuneiform)
-4000 years ago -- but let's start with a more up-to-date example!
+账本包含业务的当前状态，就像一个交易日记。欧洲和中国最早的账本可以追溯到近 1000 年前，苏美尔人在 4000 年前就有了[石制账本](http://www.sciencephoto.com/media/686227/view/accounting-ledger-sumerian-cuneiform)，但让我们从一个更现代的例子开始吧！
 
-You're probably used to looking at your bank account. What's most important to
-you is the available balance -- it's what you're able to spend at the current
-moment in time. If you want to see how your balance was derived, then you can
-look through the transaction credits and debits that determined it. This is a
-real life example of a ledger -- a state (your bank balance), and a set of
-ordered transactions (credits and debits) that determine it. Hyperledger Fabric
-is motivated by these same two concerns -- to present the current value of a set
-of ledger states, and to capture the history of the transactions that determined
-these states.
+你可能已经习惯查看你的银行账户了。对你来说，最重要的是可用的余额，它是你现在能花多少钱。如果你想看看你的余额是如何产生出来的，那么你可以查看收入和支出的交易记录。这是现实生活中的一个账本的示例——一个状态（您的银行余额）和一组确定账本的有序交易（收入和支出）。Hyperledger Fabric 同样是基于这两个问题而产生的，它显示一组账本状态的当前值，以及记录决定这些状态的交易历史。
 
-## Ledgers, Facts and States
+## 账本、事实和状态
 
-A ledger doesn't literally store business objects -- instead it stores **facts**
-about those objects. When we say "we store a business object in a ledger" what
-we really mean is that we're recording the facts about the current state of an
-object, and the facts about the history of transactions that led to the current
-state. In an increasingly digital world, it can feel like we're looking at an
-object, rather than facts about an object. In the case of a digital object, it's
-likely that it lives in an external datastore; the facts we store in the ledger
-allow us to identify its location along with other key information about it.
+账本并不真正地存储业务对象，而是存储关于这些对象的**事实**。当我们说“我们在账本中存储一个业务对象”时，我们真正的意思是我们正在记录关于一个对象当前状态的事实，以及关于导致当前状态的交易历史的事实。在一个日益数字化的世界里，我们感觉自己在看一个物体，而不是关于一个物体的事实。对于数字对象，它很可能存在于外部数据存储中；我们存储在账本中的事实使我们能够确定它的位置以及有关它的其他关键信息。
 
-While the facts about the current state of a business object may change, the
-history of facts about it is **immutable**, it can be added to, but it cannot be
-retrospectively changed. We're going to see how thinking of a blockchain as an
-immutable history of facts about business objects is a simple yet powerful way
-to understand it.
+虽然关于业务对象当前状态的事实可能会改变，但是关于它的事实的历史是**不可变的**，可以将其添加到其中，但不能对其进行回溯性更改。我们将看到，将区块链看作业务对象事实的不可变历史，是理解它的一种简单而有效的方法。
 
-Let's now take a closer look at the Hyperledger Fabric ledger structure!
+现在让我们仔细看看 Hyperledger Fabric 的账本结构！
 
+## 账本
 
-## The Ledger
+在 Hyperledger Fabric 中，账本由两个不同但相关的部分组成：一个世界状态和一个区块链。每一个都表示一组关于一组业务对象的事实。
 
-In Hyperledger Fabric, a ledger consists of two distinct, though related, parts
--- a world state and a blockchain. Each of these represents a set of facts about
-a set of business objects.
+首先，有一个**世界状态**，它是一个数据库，包含了一组账本状态的**当前值**的缓存。世界状态使程序可以很容易地直接访问状态的当前值，而不必遍历整个交易日志来计算它。默认情况下，账本状态表示为**键值对**，稍后我们将看到 Hyperledger Fabric 如何在这方面提供灵活性。世界状态可以频繁地更改，因为状态可以被创建、更新和删除。
 
-Firstly, there's a **world state** -- a database that holds a cache of the
-**current values** of a set of ledger states. The world state makes it easy for
-a program to directly access the current value of a state rather than having to
-calculate it by traversing the entire transaction log. Ledger states are, by
-default, expressed as **key-value** pairs, and we'll see later how Hyperledger
-Fabric provides flexibility in this regard. The world state can change
-frequently, as states can be created, updated and deleted.
+其次，还有一个**区块链**，它记录改变当前世界状态的所有交易日志。交易收集在附加到区块链的区块中，以便了解导致当前世界状态的更改的历史。区块链数据结构与世界状态非常不同，因为一旦写入，就无法修改，它是**不可篡改的**。
 
-Secondly, there's a **blockchain** -- a transaction log that records all the
-changes that have resulted in the current the world state. Transactions are
-collected inside blocks that are appended to the blockchain -- enabling you to
-understand the history of changes that have resulted in the current world state.
-The blockchain data structure is very different to the world state because once
-written, it cannot be modified; it is **immutable**.
+![ledger.ledger](./ledger.diagram.1.png) 
 
-![ledger.ledger](./ledger.diagram.1.png) *A Ledger L comprises blockchain B and
-world state W, where blockchain B determines world state W. We can also say that
-world state W is derived from blockchain B.*
+*账本 L 包括区块链 B 和世界状态 W，世界状态 W 由区块链 B 决定。我们也可以说世界状态 W 继承自区块链 B。*
 
-It's helpful to think of there being one **logical** ledger in a Hyperledger
-Fabric network. In reality, the network maintains multiple copies of a ledger --
-which are kept consistent with every other copy through a process called
-**consensus**. The term **Distributed Ledger Technology** (**DLT**) is often
-associated with this kind of ledger -- one that is logically singular, but has
-many consistent copies distributed throughout a network.
+在一个 Hyperledger Fabric 网络中**逻辑**账本很有用。实际上，该网络通过**共识**维护一个账本的多个副本，这些副本与其他副本保持一致。**分布式账本技术**（DLT）这个术语经常与这种账本联系在一起，这种账本在逻辑上是单一的，但是在整个网络中分布着许多一致的副本。
 
-Let's now examine the world state and blockchain data structures in more detail.
+现在让我们更详细地研究世界状态和区块链数据结构。
 
-## World State
+## 世界状态
 
-The world state holds the current value of the attributes of a business object
-as a unique ledger state. That's useful because programs usually require the
-current value of an object; it would be cumbersome to traverse the entire
-blockchain to calculate an object's current value -- you just get it directly
-from the world state.
+世界状态将业务对象属性的当前值保存为唯一的账本状态。这很有用，因为程序通常需要对象的当前值，遍历整个区块链来计算对象的当前值会很麻烦，您可以直接从世界状态获取它。
 
-![ledger.worldstate](./ledger.diagram.3.png) *A ledger world state containing
-two states. The first state is: key=CAR1 and value=Audi. The second state has a
-more complex value: key=CAR2 and value={model:BMW, color=red, owner=Jane}. Both
-states are at version 0.*
+![ledger.worldstate](./ledger.diagram.3.png) 
 
-A ledger state records a set of facts about a particular business object. Our
-example shows ledger states for two cars, CAR1 and CAR2, each having a key and a
-value. An application program can invoke a smart contract which uses simple
-ledger APIs to **get**, **put** and **delete** states. Notice how a state value
-can be simple (Audi...) or compound (type:BMW...). The world state is often
-queried to retrieve objects with certain attributes, for example to find all red
-BMWs.
+*一个账本世界状态包含两个状态。第一个状态是： key=CAR1 和 value=Audi。第二个状态有一个更复杂的值：key=CAR2 和 value={model:BMW, color=red, owner=Jane} 。两个状态的版本都是0。*
 
-The world state is implemented as a database. This makes a lot of sense because
-a database provides a rich set of operators for the efficient storage and
-retrieval of states.  We'll see later that Hyperledger Fabric can be configured
-to use different world state databases to address the needs of different types
-of state values and the access patterns required by applications, for example in
-complex queries.
+账本状态记录一组关于特定业务对象的事实。我们的示例显示了 CAR1 和 CAR2 这两辆车的账本状态，每辆车都有一个键和一个值。应用程序可以调用智能合约，该合约使用简单的账本 API 来**获取**、**设置**和**删除**状态。注意状态值可以简单值（Audi...），也可以是复合值（type:BMW...）。通常通过查询世界状态来检索具有特定属性的对象，例如查找所有红色宝马。
 
-Applications submit transactions which capture changes to the world state, and
-these transactions end up being committed to the ledger blockchain. Applications
-are insulated from the details of this [consensus](../txflow.html) mechanism by
-the Hyperledger Fabric SDK; they merely invoke a smart contract, and are
-notified when the transaction has been included in the blockchain (whether valid
-or invalid). The key design point is that only transactions that are **signed**
-by the required set of **endorsing organizations** will result in an update to
-the world state. If a transaction is not signed by sufficient endorsers, it will
-not result in a change of world state. You can read more about how applications
-use [smart contracts](../smartcontract/smartcontract.html), and how to [develop
-applications](../developapps/developing_applications.html).
+世界状态用数据库实现。这很有意义，因为数据库提供了一组丰富的操作符来有效地存储和检索状态。稍后我们将看到，可以将 Hyperledger Fabric 配置为使用不同的世界状态数据库来满足不同类型的状态值和应用程序所需的访问模式的需要，例如，复杂查询。
 
-You'll also notice that a state has an version number, and in the diagram above,
-states CAR1 and CAR2 are at their starting versions, 0. The version number for
-internal use by Hyperledger Fabric, and is incremented every time the state
-changes. The version is checked whenever the state is updated to make sure the
-current states matches the version at the time of endorsement. This ensures that
-the world state is changing as expected; that there has not been a concurrent
-update.
+应用程序提交更改世界状态的交易，这些交易最终提交到账本区块链。应用程序通过 Hyperledger Fabric SDK 与这种[共识机制](../txflow.html)的细节隔离，它们仅仅调用一个智能合约，当交易被包含在区块链中时（无论是否有效），它们都会被通知。重点是，只有被**背书组织签名**的交易才会导致对世界状态的更新。如果一个交易没有足够的背书者签名，它将不会导致世界状态的改变。您可以阅读更多关于应用程序如何使用[智能合约](../smartcontract/smartcontract.html)以及如何[开发应用程序](../developapps/developing_applications.html)的信息。
 
-Finally, when a ledger is first created, the world state is empty. Because any
-transaction which represents a valid change to world state is recorded on the
-blockchain, it means that the world state can be re-generated from the
-blockchain at any time. This can be very convenient -- for example, the world
-state is automatically generated when a peer is created. Moreover, if a peer
-fails abnormally, the world state can be regenerated on peer restart, before
-transactions are accepted.
+您还会注意到，状态有一个版本号，在上面的图表中，状态 CAR1 和 CAR2 处于它们的初始版本 0。版本号用于 Hyperledger Fabric 内部，并在每次状态更改时递增。每当更新状态时，都会检查版本，以确保当前状态与背书时的版本匹配。这就确保了世界状态正在按照预期发生变化，没有被更新。
 
-## Blockchain
+最后，当第一次创建账本时，世界状态为空。因为任何对世界状态有效更改的交易都记录在区块链上，这意味着可以随时从区块链重新生成世界状态。这非常方便，例如，创建节点时自动生成世界状态。此外，如果某个节点发生异常，则可以在节点重新启动后，接受交易之前，重新生成世界状态。
 
-Let's now turn our attention from the world state to the blockchain. Whereas the
-world state contains a set of facts relating to the current state of a set of
-business objects, the blockchain is an historical record of the facts about how
-these objects arrived at their current states. The blockchain has recorded every
-previous version of each ledger state and how it has been changed.
+## 区块链
 
-The blockchain is structured as sequential log of interlinked blocks, where each
-block contains a sequence of transactions, each transaction representing a query
-or update to the world state. The exact mechanism by which transactions are
-ordered is discussed [elsewhere](../peers/peers.html#peers-and-orderers);
-what's important is that block sequencing, as well as transaction sequencing
-within blocks, is established when blocks are first created by a Hyperledger
-Fabric component called the **ordering service**.
+现在让我们把注意力从世界状态转移到区块链。虽然世界状态包含一组与一组业务对象的当前状态相关的事实，但是区块链是关于这些对象如何达到当前状态的事实的历史记录。区块链记录了每个账本状态的每个历史版本以及它是如何被更改的。
 
-Each block's header includes a hash of the block's transactions, as well a copy
-of the hash of the prior block's header. In this way, all transactions on the
-ledger are sequenced and cryptographically linked together. This hashing and
-linking makes the ledger data very secure. Even if one node hosting the ledger
-was tampered with, it would not be able to convince all the other nodes that it
-has the 'correct' blockchain because the ledger is distributed throughout a
-network of independent nodes.
+区块链结构为相互链接的区块的顺序日志，其中每个区块包含一系列交易，每个交易表示对世界状态的查询或更新。[其他地方](../peers/peers.html#peers-and-orderers)讨论了交易的确切排序机制，重要的是，区块排序，以及区块内的交易排序，是在称为**排序服务**的 Hyperledger Fabric 组件首次创建区块时建立的。
 
-The blockchain is always implemented as a file, in contrast to the world state,
-which uses a database. This is a sensible design choice as the blockchain data
-structure is heavily biased towards a very small set of simple operations.
-Appending to the end of the blockchain is the primary operation, and query is
-currently a relatively infrequent operation.
+每个区块的头部都包含区块交易的哈希，以及前一个区块头哈希的副本。这样，账本上的所有交易都按顺序排列，并以密码方式连接在一起。这种哈希和链接使账本数据非常安全。即使一个保存账本的节点被篡改了，它也不能让所有其他节点相信它拥有“正确的”区块链，因为账本分布在一个由独立节点组成的网络中。
 
-Let's have a look at the structure of a blockchain in a little more detail.
+与使用数据库的世界状态不同，区块链以文件方式实现。这是一个明智的设计，因为区块链数据结构主要偏向于非常小的一组简单操作。附加到区块链末尾的操作是主要操作，查询目前是一个相对不频繁的操作。
 
-![ledger.blockchain](./ledger.diagram.2.png) *A blockchain B containing blocks
-B0, B1, B2, B3. B0 is the first block in the blockchain, the genesis block.*
+让我们更详细地看看区块链的结构。
 
-In the above diagram, we can see that **block** B2 has a **block data** D2 which
-contains all its transactions: T5, T6, T7.
+![ledger.blockchain](./ledger.diagram.2.png) 
 
-Most importantly, B2 has a **block header** H2, which contains a cryptographic
-**hash** of all the transactions in D2 as well as with the equivalent hash from
-the previous block B1. In this way, blocks are inextricably and immutably linked
-to each other, which the term **blockchain** so neatly captures!
+*区块链 B 包含区块 B0、B1、B2、B3。B0 是它的第一个区块，也就是初始区块。*
 
-Finally, as you can see in the diagram, the first block in the blockchain is
-called the **genesis block**.  It's the starting point for the ledger, though it
-does not contain any user transactions. Instead, it contains a configuration
-transaction containing the initial state of the network channel (not shown). We
-discuss the genesis block in more detail when we discuss the blockchain network
-and [channels](../channels.html) in the documentation.
+在上面的图中，我们可以看到**区块** B2 有一个**区块数据** D2，它包含所有的交易：T5、T6、T7。
 
-## Blocks
+最重要的是，B2 有一个**区块头** H2，它包含 D2 中所有交易的加密**哈希**，以及与前一个区块 B1 相同的哈希。通过这种方式，区块之间不可分割地、不可改变地链接在一起，术语**区块链**很好地描述了这一点！
 
-Let's have a closer look at the structure of a block. It consists of three
-sections
+最后，如图所示，区块链中的第一个区块称为**初始区块**。它是账本的起点，尽管它不包含任何用户交易。相反，它包含一个配置交易，其中包含网络通道的初始状态（未显示）。在讨论区块链网络和[通道](../channels.html) 时，我们将更详细地讨论初始区块。
 
-* **Block Header**
+## 区块
+
+让我们仔细看看一个区块的结构。它由三个部分组成
+
+* **区块头**
 
   This section comprises three fields, written when a block is created.
 
@@ -342,7 +229,7 @@ different color, make, model and owner. Here's what the ledger looks like after
 the first four cars have been created.
 
 ![ledger.transaction](./ledger.diagram.6.png) *The ledger, L, comprises a world
-state, W and a blockchain, B. W contains four states with keys: CAR1, CAR2, CAR3
+state, W and a blockchain, B. W contains four states with keys: CAR0, CAR2, CAR3
 and CAR4. B contains two blocks, 0 and 1. Block 1 contains four transactions:
 T1, T2, T3, T4.*
 
