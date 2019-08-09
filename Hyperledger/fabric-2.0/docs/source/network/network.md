@@ -1,6 +1,6 @@
 # 区块链网络
 
-_注意：本教程描述的网络使用[之前的生命周期过程](https://hyperledger-fabric.readthedocs.io/en/release-1.4/chaincode4noah.html)，其中链码在已经通道上完成了实例化。这个主题将被更新，以反映 [Fabric 链码生命周期](../chaincode4noah.html)特性，该特性在v2.0.0 的 alpha 版本中首次引入。_
+_注意：本教程描述的网络使用[之前的生命周期过程](https://hyperledger-fabric.readthedocs.io/en/release-1.4/chaincode4noah.html)，其中链码在已经通道上完成了实例化。这个主题后续将根据在v2.0.0 的 alpha 版本中首次引入的 [Fabric 链码生命周期](../chaincode4noah.html)特性进行更新。_
 
 本主题将**在概念层次上**描述 Hyperledger Fabric 是如何允许组织间以区块链网络的形式进行合作的。如果您是架构师、管理员或开发人员，您可以使用这个主题来深入了解 Hyperledger Fabric 区块链网络中的主要结构和流程组件。本主题将使用一个可管理的工作示例介绍区块链网络中的所有主要组件。理解了这个示例之后，您可以在文档的其他地方阅读关于这些组件的更详细的信息，或者尝试[构建一个示例网络](../build_network.html)。
 
