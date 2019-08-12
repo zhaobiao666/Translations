@@ -170,14 +170,14 @@ Peer 节点还可以承担 **背书节点** 或 **背书人** 的特殊角色。
 2.1. 客户端创建一个交易并将其发送给它所指定的背书节点
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-要执行一个交易，客户端需要向其指定的背书节点发送一个 ``提案``（PROPOSE）消息（可能不是同时。请参见2.1.2和2.3节）。客户端可以通过 Peer 节点根据背书策略（参阅第三章）得到给定 ``chaincodeID`` 的背书节点。例如，交易可以发送给指定 ``chaincodeID`` 的 *所有* 背书节点。也就是说，一些背书节点可以离线，其他的可能不同意或者不背书该交易。提交客户端可以尝试可用的背书节点来满足背书策略。
+要执行一个交易，客户端需要向其指定的背书节点发送一个 ``PROPOSE`` （提案）消息（可能不是同时。请参见2.1.2和2.3节）。客户端可以通过 Peer 节点根据背书策略（参阅第三章）得到给定 ``chaincodeID`` 的背书节点。例如，交易可以发送给指定 ``chaincodeID`` 的 *所有* 背书节点。也就是说，一些背书节点可以离线，其他的可能不同意或者不背书该交易。提交客户端可以尝试可用的背书节点来满足背书策略。
 
-下边我们将首先详细介绍 ``提案`` 消息格式，然后讨论提交客户端和背书节点之间可能的交互模式。
+下边我们将首先详细介绍 ``PROPOSE`` 消息格式，然后讨论提交客户端和背书节点之间可能的交互模式。
 
-2.1.1. ``提案`` 消息格式
+2.1.1. ``PROPOSE`` 消息格式
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``提案`` 消息的格式是 ``<PROPOSE,tx,[anchor]>``，``tx`` 是必选参数而 ``anchor`` 是可选参数，解释如下。
+``PROPOSE`` 消息的格式是 ``<PROPOSE,tx,[anchor]>``，``tx`` 是必选参数而 ``anchor`` 是可选参数，解释如下。
 
 - ``tx=<clientID,chaincodeID,txPayload,timestamp,clientSig>``，其中
   - ``clientID`` 是提交客户端的 ID，
@@ -200,121 +200,60 @@ Peer 节点还可以承担 **背书节点** 或 **背书人** 的特殊角色。
       -  ``policies`` 包含了链码相关的策略，比如背书策略，它可以被所有 Peer 节点访问。
          注意，在 ``部署`` 交易中 ``txPayload`` 不包含背书策略，但是包含背书策略 ID 和它的参数（参见第三章）。
 
-- ``anchor`` 包含了 *读版本依赖项*，具体来说就是“键值-版本”对（即 ``anchor`` 是 ``KxN`` 的子集），它将 ``提案`` 请求绑定或者“锚定”在 KVS（参见 1.2）中指定的键的版本上。如果客户端指定了 ``anchor`` 参数，背书节点仅在其本地 KVS 和 ``anchor`` 对应键的 *读* 版本号相匹配时才背书交易（更多的细节参见第2.2节）。
+- ``anchor`` 包含了 *读版本依赖项*，具体来说就是“键值-版本”对（即 ``anchor`` 是 ``KxN`` 的子集），它将 ``PROPOSE`` 请求绑定或者“锚定”在 KVS（参见 1.2）中指定的键的版本上。如果客户端指定了 ``anchor`` 参数，背书节点仅在其本地 KVS 和 ``anchor`` 对应键的 *读* 版本号相匹配时才背书交易（更多的细节参见第2.2节）。
 
 所有节点都是用 ``tx`` 的哈希作为交易标识符 ``tid``，即 ``tid=HASH(tx)``。客户端将 ``tid`` 保存在内存中，等待背书节点的响应。
 
 2.1.2. 消息模式
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The client decides on the sequence of interaction with endorsers. For
-example, a client would typically send ``<PROPOSE, tx>`` (i.e., without
-the ``anchor`` argument) to a single endorser, which would then produce
-the version dependencies (``anchor``) which the client can later on use
-as an argument of its ``PROPOSE`` message to other endorsers. As another
-example, the client could directly send ``<PROPOSE, tx>`` (without
-``anchor``) to all endorsers of its choice. Different patterns of
-communication are possible and client is free to decide on those (see
-also Section 2.3.).
+客户端决定和背书节点交互的顺序。例如，客户端通常会把 ``<PROPOSE, tx>``（即没有 ``anchor`` 参数）发送到一个节点，客户端稍后会将生成的版本依赖（``anchor``）作为 ``提案`` 消息的参数发送到其他背书节点。另外一个例子就是，客户端也可以直接将 ``<PROPOSE, tx>``（没有 ``anchor`` 参数）直接发送给背书节点。客户端可以自由选择不同的通信模式（参看2.3节）。
 
-2.2. The endorsing peer simulates a transaction and produces an endorsement signature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.2. 背书节点模拟交易并生成背书签名
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On reception of a ``<PROPOSE,tx,[anchor]>`` message from a client, the
-endorsing peer ``epID`` first verifies the client's signature
-``clientSig`` and then simulates a transaction. If the client specifies
-``anchor`` then endorsing peer simulates the transactions only upon read
-version numbers (i.e., ``readset`` as defined below) of corresponding
-keys in its local KVS match those version numbers specified by
-``anchor``.
+当收到客户端发来的 ``<PROPOSE,tx,[anchor]>`` 消息后，背书节点 ``epID`` 首先验证客户端的签名 ``clientSig`` 然后再模拟交易。如果客户端指定了 ``anchor``，那么背书节点只会在它读取到本地 KVS 中 ``anchor`` 所指定键值的版本号（即后边会介绍的 ``readset`` ）后才会模拟交易。
 
-Simulating a transaction involves endorsing peer tentatively *executing*
-a transaction (``txPayload``), by invoking the chaincode to which the
-transaction refers (``chaincodeID``) and the copy of the state that the
-endorsing peer locally holds.
+模拟交易是背书节点调用交易中引用的链码（``chaincodeID``）和背书节点本地的状态副本来 *执行* 交易 （``txPayload``）的过程。
 
-As a result of the execution, the endorsing peer computes *read version
-dependencies* (``readset``) and *state updates* (``writeset``), also
-called *MVCC+postimage info* in DB language.
+执行的结果是背书节点计算出来的 *读版本依赖*（``readset``，读集）和 *状态更新* （``writeset``，写集 ），在数据库语言中也称为 *MVCC + postimage info*。
 
-Recall that the state consists of key-value pairs. All key-value entries
-are versioned; that is, every entry contains ordered version
-information, which is incremented each time the value stored under
-a key is updated. The peer that interprets the transaction records all
-key-value pairs accessed by the chaincode, either for reading or for writing,
-but the peer does not yet update its state. More specifically:
+回想一下，状态由键值对组成。所有键值条目都是带有版本的；也就是说，每个条目都含有有序的版本信息，每次更新键对应的值时，版本号都会递增。执行交易的节点保存着链码用于读取或写入的所有键值对，但节点还没有更新状态。具体来说：
 
--  Given state ``s`` before an endorsing peer executes a transaction,
-   for every key ``k`` read by the transaction, pair
-   ``(k,s(k).version)`` is added to ``readset``.
--  Additionally, for every key ``k`` modified by the transaction to the
-   new value ``v'``, pair ``(k,v')`` is added to ``writeset``.
-   Alternatively, ``v'`` could be the delta of the new value to previous
-   value (``s(k).value``).
+-  在背书节点执行交易前给出一个状态 ``s``，其中保存着交易读取的所有键 ``k``。``(k,s(k).version)`` 被添加到 ``readset`` 中。
 
-If a client specifies ``anchor`` in the ``PROPOSE`` message then client
-specified ``anchor`` must equal ``readset`` produced by endorsing peer
-when simulating the transaction.
+-  另外，交易将所有键 ``k`` 的值改变为新值 ``v'``， ``(k,v')`` 被添加到 ``writeset`` 中。
 
-Then, the peer forwards internally ``tran-proposal`` (and possibly
-``tx``) to the part of its (peer's) logic that endorses a transaction,
-referred to as **endorsing logic**. By default, endorsing logic at a
-peer accepts the ``tran-proposal`` and simply signs the
-``tran-proposal``. However, endorsing logic may interpret arbitrary
-functionality, to, e.g., interact with legacy systems with
-``tran-proposal`` and ``tx`` as inputs to reach the decision whether to
-endorse a transaction or not.
+如果客户端在 ``PROPOSE`` 消息中指定了 ``anchor``，那么客户端指定的 ``anchor`` 必须和背书节点模拟交易时的 ``readset`` 一致。
+
+然后节点在内部根据 **背书逻辑** 向其他背书节点转发 ``tran-proposal`` （或者叫做 ``tx``）。默认情况下节点的背书逻辑只接收并背书 ``tran-proposal``。然而背书逻辑可以解释任何功能，比如，以 ``tran-proposal`` 和 ``tx`` 作为输入和系统交互来判断是否能够背书一笔交易。
 
 If endorsing logic decides to endorse a transaction, it sends
 ``<TRANSACTION-ENDORSED, tid, tran-proposal,epSig>`` message to the
 submitting client(\ ``tx.clientID``), where:
 
--  ``tran-proposal := (epID,tid,chaincodeID,txContentBlob,readset,writeset)``,
+如果背书逻辑决定背书一笔交易，它会发送 ``<TRANSACTION-ENDORSED, tid, tran-proposal,epSig>`` 消息给提交客户端 （``tx.clientID``），其中：
 
-   where ``txContentBlob`` is chaincode/transaction specific
-   information. The intention is to have ``txContentBlob`` used as some
-   representation of ``tx`` (e.g., ``txContentBlob=tx.txPayload``).
+-  ``tran-proposal := (epID,tid,chaincodeID,txContentBlob,readset,writeset)`， ``txContentBlob`` 是链码（交易）指定的信息。目的是让 ``txContentBlob`` 和 ``tx`` 有相同的表达方式（例如 ``txContentBlob=tx.txPayload``）。
 
--  ``epSig`` is the endorsing peer's signature on ``tran-proposal``
+-  ``epSig`` 是背书节点在 ``tran-proposal`` 上的签名。 
 
-Else, in case the endorsing logic refuses to endorse the transaction, an
-endorser *may* send a message ``(TRANSACTION-INVALID, tid, REJECTED)``
-to the submitting client.
+另外，当背书逻辑拒绝为交易背书时，背书节点 *可能* 会给提交客户端发送一个 ``(TRANSACTION-INVALID, tid, REJECTED)`` 消息。
 
-Notice that an endorser does not change its state in this step, the
-updates produced by transaction simulation in the context of endorsement
-do not affect the state!
+注意，背书节点在这一步不会改变状态，在背书环境中模拟执行交易产生的结果不会影响状态！
 
-2.3. The submitting client collects an endorsement for a transaction and broadcasts it through ordering service
+2.3. 提交客户端收集交易背书并向排序服务广播
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The submitting client waits until it receives "enough" messages and
-signatures on ``(TRANSACTION-ENDORSED, tid, *, *)`` statements to
-conclude that the transaction proposal is endorsed. As discussed in
-Section 2.1.2., this may involve one or more round-trips of interaction
-with endorsers.
+提交客户端一直等待接收到“足够多”的消息和 ``(TRANSACTION-ENDORSED, tid, *, *)`` 的签名后才可以确认交易提案背书完成了。就像在2.1.2节中所讨论的，这一步可能会和背书节点有多次交互。
 
-The exact number of "enough" depend on the chaincode endorsement policy
-(see also Section 3). If the endorsement policy is satisfied, the
-transaction has been *endorsed*; note that it is not yet committed. The
-collection of signed ``TRANSACTION-ENDORSED`` messages from endorsing
-peers which establish that a transaction is endorsed is called an
-*endorsement* and denoted by ``endorsement``.
+“足够多”的含义取决于背书策略（参见第三章）。如果满足了背书策略，就表明交易被 *背书* 了。注意，还没有提交。从背书节点收集的 ``TRANSACTION-ENDORSED`` 消息的签名就称为 ``背书``。
 
-If the submitting client does not manage to collect an endorsement for a
-transaction proposal, it abandons this transaction with an option to
-retry later.
+如果提交客户端没有收到交易提案的背书，它就会放弃该交易，并且可以选择稍后重试。
 
-For transaction with a valid endorsement, we now start using the
-ordering service. The submitting client invokes ordering service using
-the ``broadcast(blob)``, where ``blob=endorsement``. If the client does
-not have capability of invoking ordering service directly, it may proxy
-its broadcast through some peer of its choice. Such a peer must be
-trusted by the client not to remove any message from the ``endorsement``
-or otherwise the transaction may be deemed invalid. Notice that,
-however, a proxy peer may not fabricate a valid ``endorsement``.
+对于成功背书的交易，我们现在就要开始使用排序服务了。提交客户端通过 ``broadcast(blob)`` 调用排序服务，其中 ``blob=endorsement``。如果客户端不能直接调用排序服务，它可以通过其他节点代理它的广播。这个节点必须是客户端信任的节点，确保节点不会从 ``endorsement`` 中删除任何信息，否则交易会被验证失败。需要提醒的是，代理节点无法伪造有效的 ``背书``。
 
-2.4. The ordering service delivers a transactions to the peers
+2.4. 排序服务将交易发送给节点
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When an event ``deliver(seqno, prevhash, blob)`` occurs and a peer has
