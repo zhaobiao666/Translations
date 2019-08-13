@@ -76,7 +76,7 @@ KVS 操作模型如下：
 
 账本是由排序服务（参见第1.3.3节）构造的，它是（有效或无效的）交易的 *区块* 的完全有序哈希链。哈希链强制账本中的区块的顺序，每个区块包含一个完全有序的交易数组。这强制为所有交易指定了顺序。
 
-账本保存在所有的 Peer 节点上，也可以选择保存在部分排序节点上。在排序节点的上下文中，我们将账本称为“排序节点账本”，而在 Peer 节点的上下文中，我们将账本称为“节点账本”。``Peer 节点账本`` 与 ``排序节点账本`` 的不同之处在于，Peer 节点在本地维护一个比特掩码，该比特掩码将有效的交易与无效的交易区分开来（有关详细信息，请参阅XX节）。
+账本保存在所有的 Peer 节点上，也可以选择保存在部分排序节点上。在排序节点的上下文中，我们将账本称为“排序节点账本”，而在 Peer 节点的上下文中，我们将账本称为“节点账本”。``Peer 节点账本`` 与 ``排序节点账本`` 的不同之处在于，Peer 节点在本地维护一个位掩码，该位掩码将有效的交易与无效的交易区分开来（有关详细信息，请参阅XX节）。
 
 如第 XX 节（v1后续版本特性）所述的，Peer 节点可以裁剪 ``节点账本``。排序节点维护“排序节点账本”以获得容错性和（“Peer 节点账本”的）可用性，并可以决定随时对其进行裁剪，前提是排序服务的属性得到了维护（参见第1.3.3节）。
 
@@ -256,90 +256,43 @@ submitting client(\ ``tx.clientID``), where:
 2.4. 排序服务将交易发送给节点
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When an event ``deliver(seqno, prevhash, blob)`` occurs and a peer has
-applied all state updates for blobs with sequence number lower than
-``seqno``, a peer does the following:
+当发生 ``deliver(seqno, prevhash, blob)`` 事件，并且节点上的状态已经更新到比 ``seqno`` 小的序号时，节点会有如下操作：
 
--  It checks that the ``blob.endorsement`` is valid according to the
-   policy of the chaincode (``blob.tran-proposal.chaincodeID``) to which
-   it refers.
+-  它会根据链码（``blob.tran-proposal.chaincodeID``）的背书策略来检查 ``blob.endorsement`` 的有效性。
 
--  In a typical case, it also verifies that the dependencies
-   (``blob.endorsement.tran-proposal.readset``) have not been violated
-   meanwhile. In more complex use cases, ``tran-proposal`` fields in
-   endorsement may differ and in this case endorsement policy (Section
-   3) specifies how the state evolves.
+-  一般情况下，它还会验证依赖项（``blob.endorsement.tran-proposal.readset``）没有被改变。在更复杂的用例中，背书中的 ``tran-proposal`` 字段可能会不一样，这时背书策略（参见第三章）会决定对状态的操作。
 
-Verification of dependencies can be implemented in different ways,
-according to a consistency property or "isolation guarantee" that is
-chosen for the state updates. **Serializability** is a default isolation
-guarantee, unless chaincode endorsement policy specifies a different
-one. Serializability can be provided by requiring the version associated
-with *every* key in the ``readset`` to be equal to that key's version in
-the state, and rejecting transactions that do not satisfy this
-requirement.
+依赖项的验证根据状态更新选择的一致性属性或者“隔离保证”可以有多种不同实现。**有序性** 是默认的隔离保证，除非背书策略指定了一个。当所要求的 ``readset`` 中 *每一个* 键的版本和状态中键的版本一致的时候就提供了有序性，并将拒绝不符合要求的交易。
 
--  If all these checks pass, the transaction is deemed *valid* or
-   *committed*. In this case, the peer marks the transaction with 1 in
-   the bitmask of the ``PeerLedger``, applies
-   ``blob.endorsement.tran-proposal.writeset`` to blockchain state (if
-   ``tran-proposals`` are the same, otherwise endorsement policy logic
-   defines the function that takes ``blob.endorsement``).
+-  如果通过了所有检查，就认为交易是 *有效的* 或者是 *已提交的*。这时，节点会在 ``节点账本`` 的位掩码中将该交易标记为1，将 ``blob.endorsement.tran-proposal.writeset`` 应用到区块链账本（如果 ``tran-proposals`` 是一致的，否则背书策略逻辑会让函数验证 ``blob.endorsement``）。
 
--  If the endorsement policy verification of ``blob.endorsement`` fails,
-   the transaction is invalid and the peer marks the transaction with 0
-   in the bitmask of the ``PeerLedger``. It is important to note that
-   invalid transactions do not change the state.
+-  如果 ``blob.endorsement`` 的背书策略验证失败，交易就是无效的并且节点会在 ``节点账本`` 的位掩码中将该交易标记为0。有必要提醒一下，无效交易不会改变状态。
 
-Note that this is sufficient to have all (correct) peers have the same
-state after processing a deliver event (block) with a given sequence
-number. Namely, by the guarantees of the ordering service, all correct
-peers will receive an identical sequence of
-``deliver(seqno, prevhash, blob)`` events. As the evaluation of the
-endorsement policy and evaluation of version dependencies in ``readset``
-are deterministic, all correct peers will also come to the same
-conclusion whether a transaction contained in a blob is valid. Hence,
-all peers commit and apply the same sequence of transactions and update
-their state in the same way.
+注意，这足够使所有（正确的）节点在处理完给定序号的区块后得到相同的状态。也就是说，通过排序节点的保证，所有正确的节点都将收到相同顺序的 ``deliver(seqno, prevhash, blob)`` 事件。无论交易是否有效，通过背书策略和 ``读集`` 中的版本依赖节点都将得到一样的结果。因此，所有节点以同样的方式提交和应用相同顺序的交易来更新它们的状态。
 
 .. _swimlane:
 
 .. image:: images/flow-4.png
    :alt: Illustration of the transaction flow (common-case path).
 
-*Figure 1. Illustration of one possible transaction flow (common-case path).*
+*Figure 1. 一般的交易流程示意图。*
 
-3. Endorsement policies
+3. 背书策略
 -----------------------
 
-3.1. Endorsement policy specification
+3.1. 背书策略说明
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An **endorsement policy**, is a condition on what *endorses* a
-transaction. Blockchain peers have a pre-specified set of endorsement
-policies, which are referenced by a ``deploy`` transaction that installs
-specific chaincode. Endorsement policies can be parametrized, and these
-parameters can be specified by a ``deploy`` transaction.
+**背书策略** 是 *背书* 一笔交易的条件。区块链节点预置了一些背书策略，用来处理安装特定链码的 ``部署`` 交易。背书策略可以通过 ``部署`` 交易来指定。
 
-To guarantee blockchain and security properties, the set of endorsement
-policies **should be a set of proven policies** with limited set of
-functions in order to ensure bounded execution time (termination),
-determinism, performance and security guarantees.
+为了保证安全性，背书策略 **应该是一组被证实过的策略**，其中包含一组有限的方法，以此确保执行时间可控，可以出现确定性结果，有良好的性能以及拥有安全保证。
 
-Dynamic addition of endorsement policies (e.g., by ``deploy``
-transaction on chaincode deploy time) is very sensitive in terms of
-bounded policy evaluation time (termination), determinism, performance
-and security guarantees. Therefore, dynamic addition of endorsement
-policies is not allowed, but can be supported in future.
+动态添加背书策略（例如，在安装链码时的 ``部署`` 交易）会影响其安全性。目前不允许动态添加背书策略，以后会增加这项功能。
 
-3.2. Transaction evaluation against endorsement policy
+3.2. 根据背书策略的交易评估
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A transaction is declared valid only if it has been endorsed according
-to the policy. An invoke transaction for a chaincode will first have to
-obtain an *endorsement* that satisfies the chaincode's policy or it will
-not be committed. This takes place through the interaction between the
-submitting client and endorsing peers as explained in Section 2.
+只有当交易的背书满足背书策略时交易才是有效的。链码的执行交易会首先获取符合链码策略的背书，否则不会被提交。这个过程发生在提交客户端和背书节点之间，详细过程参见第二章。
 
 Formally the endorsement policy is a predicate on the endorsement, and
 potentially further state that evaluates to TRUE or FALSE. For deploy
