@@ -1,3 +1,6 @@
+PeerLedger 统一用英文
+vBlock 统一用英文
+
 架构起源
 ====================
 
@@ -292,148 +295,79 @@ submitting client(\ ``tx.clientID``), where:
 3.2. 根据背书策略的交易评估
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-只有当交易的背书满足背书策略时交易才是有效的。链码的执行交易会首先获取符合链码策略的背书，否则不会被提交。这个过程发生在提交客户端和背书节点之间，详细过程参见第二章。
+只有当交易的背书满足背书策略时交易才是有效的。链码的执行交易会首先获得符合链码策略的 *背书*，否则不会被提交。这个过程发生在提交客户端和背书节点之间，详细过程参见第二章。
 
-Formally the endorsement policy is a predicate on the endorsement, and
-potentially further state that evaluates to TRUE or FALSE. For deploy
-transactions the endorsement is obtained according to a system-wide
-policy (for example, from the system chaincode).
+从形式上来讲，背书策略是背书的依据，并且背书策略更进一步的评估状态是正确的还是错误的。对于部署交易，背书包含在系统层面的策略中（例如，来自系统链码）。
 
-An endorsement policy predicate refers to certain variables. Potentially
-it may refer to:
+背书策略的依据是引用特定的变量。它可能引用：
 
-1. keys or identities relating to the chaincode (found in the metadata
-   of the chaincode), for example, a set of endorsers;
-2. further metadata of the chaincode;
-3. elements of the ``endorsement`` and ``endorsement.tran-proposal``;
-4. and potentially more.
+1. 和链码相关的键或标示（可以在链码的元数据中找到），例如，背书者集合；
+2. 链码更进一步的元数据；
+3. ``endorsement`` 和 ``endorsement.tran-proposal`` 中的元素；
+4. 其他元素。
 
-The above list is ordered by increasing expressiveness and complexity,
-that is, it will be relatively simple to support policies that only
-refer to keys and identities of nodes.
+上边列出的内容是根据易读性和负责性排序递增的顺序排序的，也就是说，只引用键和节点标示的策略会相对简单。
 
-**The evaluation of an endorsement policy predicate must be
-deterministic.** An endorsement shall be evaluated locally by every peer
-such that a peer does *not* need to interact with other peers, yet all
-correct peers evaluate the endorsement policy in the same way.
+**背书策略的评估标准必须是确定的**。背书的评估可能在每一个本地节点上执行，这些节点 *不* 必要和其他节点交互，但所有正确的节点仍以相同的方式评估背书。
 
-3.3. Example endorsement policies
+3.3. 背书策略示例
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The predicate may contain logical expressions and evaluates to TRUE or
-FALSE. Typically the condition will use digital signatures on the
-transaction invocation issued by endorsing peers for the chaincode.
+背书策略的条件可能会包含用来判断正确和错误的逻辑语句。一般来说，判断条件会使用交易中的签名，该签名由链码的背书节点签发。
 
-Suppose the chaincode specifies the endorser set
-``E = {Alice, Bob, Charlie, Dave, Eve, Frank, George}``. Some example
-policies:
+假设链码指定了背书者集合 ``E = {Alice, Bob, Charlie, Dave, Eve, Frank, George}``。以下是一些示例策略：
 
--  A valid signature from on the same ``tran-proposal`` from all members
-   of E.
+- 同一个 ``tran-proposal`` 上有效签名的条件是：E 中所有成员都签名。
 
--  A valid signature from any single member of E.
+- 有效签名的条件是：E 中任何一个成员签名。
 
--  Valid signatures on the same ``tran-proposal`` from endorsing peers
-   according to the condition
-   ``(Alice OR Bob) AND (any two of: Charlie, Dave, Eve, Frank, George)``.
+- 同一个 ``tran-proposal`` 上有效签名的条件是： ``(Alice OR Bob) AND (any two of: Charlie, Dave, Eve, Frank, George)``。
 
--  Valid signatures on the same ``tran-proposal`` by any 5 out of the 7
-   endorsers. (More generally, for chaincode with ``n > 3f`` endorsers,
-   valid signatures by any ``2f+1`` out of the ``n`` endorsers, or by
-   any group of *more* than ``(n+f)/2`` endorsers.)
+- 同一个 ``tran-proposal`` 上有效签名的条件是：包含七个背书节点中的任意五个。（一般来说，对于一个 ``n > 3f`` 个背书者的链码来说，``n`` 个节点中有 ``2f+1`` 个节点签名就算有效，或者 *多于* ``(n+f)/2`` 个背书节点。）
 
--  Suppose there is an assignment of "stake" or "weights" to the
-   endorsers, like
-   ``{Alice=49, Bob=15, Charlie=15, Dave=10, Eve=7, Frank=3, George=1}``,
-   where the total stake is 100: The policy requires valid signatures
-   from a set that has a majority of the stake (i.e., a group with
-   combined stake strictly more than 50), such as ``{Alice, X}`` with
-   any ``X`` different from George, or
-   ``{everyone together except Alice}``. And so on.
+- 假设背书者有一个 ``权重``，比如 ``{Alice=49, Bob=15, Charlie=15, Dave=10, Eve=7, Frank=3, George=1}`` 总权重是100，有效签名的条件是权重中的大多数（比如，多于50的权重），例如 ``{Alice, X}`` 和 George 之外的任何 ``X``，或者 ``{everyone together except Alice}``。等等。
 
--  The assignment of stake in the previous example condition could be
-   static (fixed in the metadata of the chaincode) or dynamic (e.g.,
-   dependent on the state of the chaincode and be modified during the
-   execution).
+- 上边所提到的权重可以是静态的（固定在链码元数据中）也可以是动态的（例如，根据在执行过程中链码的状态）。
 
--  Valid signatures from (Alice OR Bob) on ``tran-proposal1`` and valid
-   signatures from ``(any two of: Charlie, Dave, Eve, Frank, George)``
-   on ``tran-proposal2``, where ``tran-proposal1`` and
-   ``tran-proposal2`` differ only in their endorsing peers and state
-   updates.
+- 有效签名的条件是：``tran-proposal1`` 满足 ``Alice OR Bob`` 并且 ``tran-proposal2`` 满足 ``(any two of: Charlie, Dave, Eve, Frank, George)``，其中 ``tran-proposal1`` 和``tran-proposal2`` 的区别在于背书节点和状态更新。
 
-How useful these policies are will depend on the application, on the
-desired resilience of the solution against failures or misbehavior of
-endorsers, and on various other properties.
+这些策略的用处取决于应用程序，关系到当背书节点故障、作恶或者出现其他状况时系统的弹性。
 
-4 (post-v1). Validated ledger and ``PeerLedger`` checkpointing (pruning)
+4 （v1之后）。 已验证账本和节点账本检查点（裁剪）
 ------------------------------------------------------------------------
 
-4.1. Validated ledger (VLedger)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.1. 已验证账本（Validated ledger，VLedger）
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To maintain the abstraction of a ledger that contains only valid and
-committed transactions (that appears in Bitcoin, for example), peers
-may, in addition to state and Ledger, maintain the *Validated Ledger (or
-VLedger)*. This is a hash chain derived from the ledger by filtering out
-invalid transactions.
+为了维护只包含了有效的和已提交的交易的账本的抽象，Peer 节点在状态和账本之外维护了一个 *已验证账本*。这是从账本中过滤掉无效交易之后的哈希链。
 
-The construction of the VLedger blocks (called here *vBlocks*) proceeds
-as follows. As the ``PeerLedger`` blocks may contain invalid
-transactions (i.e., transactions with invalid endorsement or with
-invalid version dependencies), such transactions are filtered out by
-peers before a transaction from a block becomes added to a vBlock. Every
-peer does this by itself (e.g., by using the bitmask associated with
-``PeerLedger``). A vBlock is defined as a block without the invalid
-transactions, that have been filtered out. Such vBlocks are inherently
-dynamic in size and may be empty. An illustration of vBlock construction
-is given in the figure below.
+已验证账本区块（VLedger blocks, *vBlocks*）处理过程如下。因为 ``节点账本`` 可能包含无效交易（例如，交易的背书无效或者依赖版本无效），这些交易在加入到 vBlock 之前就别过滤掉了。每个节点自己完成这一步（例如，根据 ``节点账本`` 中相关的掩码）。已验证账本区块的定义是，不包含无效交易的区块。这些区块的大小是动态的并且可能为空。vBlock 的结构定义如下图：
 
 .. image:: images/blocks-3.png
    :alt: Illustration of vBlock formation
 
-*Figure 2. Illustration of validated ledger block (vBlock) formation from ledger (PeerLedger) blocks.*
+*图2。已验证账本区块（vBlock）和账本（PeerLedger）区块结构的区别。*
 
-vBlocks are chained together to a hash chain by every peer. More
-specifically, every block of a validated ledger contains:
+vBlock 是通过每一个 Peer 节点连接在一起的哈希链。确切地说，每一个 vBlock 包含：
 
--  The hash of the previous vBlock.
+- 前一个 vBlock 的哈希。
 
--  vBlock number.
+- vBlock 序号。
 
--  An ordered list of all valid transactions committed by the peers
-   since the last vBlock was computed (i.e., list of valid transactions
-   in a corresponding block).
+- 上一个 vBlock 生成之后所有已提交交易的有序列表。
 
--  The hash of the corresponding block (in ``PeerLedger``) from which
-   the current vBlock is derived.
+- 生成当前 vBlock 的相关区块（在 ``PeerLedger`` 中）哈希。
 
-All this information is concatenated and hashed by a peer, producing the
-hash of the vBlock in the validated ledger.
+所有这些信息连接在一起并由 Peer 节点计算哈希，从而得到已验证账本中 vBlock 的哈希。
 
-4.2. ``PeerLedger`` Checkpointing
+4.2. ``PeerLedger`` 检查点（Checkpointing）
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ledger contains invalid transactions, which may not necessarily be
-recorded forever. However, peers cannot simply discard ``PeerLedger``
-blocks and thereby prune ``PeerLedger`` once they establish the
-corresponding vBlocks. Namely, in this case, if a new peer joins the
-network, other peers could not transfer the discarded blocks (pertaining
-to ``PeerLedger``) to the joining peer, nor convince the joining peer of
-the validity of their vBlocks.
+包含无效交易的账本没有必要永久保存。但是 Peer 节点不能简单地丢弃 ``PeerLedger`` 区块，因此当构造完相应 vBlock 之后会对 ``PeerLedger`` 进行裁剪。也就是说，在这种情况下，如果一个新节点加入到了网络中，其他节点不能向新节点发送将会丢弃的区块，也不能向新节点证明它们的 vBlock 的有效性。
 
-To facilitate pruning of the ``PeerLedger``, this document describes a
-*checkpointing* mechanism. This mechanism establishes the validity of
-the vBlocks across the peer network and allows checkpointed vBlocks to
-replace the discarded ``PeerLedger`` blocks. This, in turn, reduces
-storage space, as there is no need to store invalid transactions. It
-also reduces the work to reconstruct the state for new peers that join
-the network (as they do not need to establish validity of individual
-transactions when reconstructing the state by replaying ``PeerLedger``,
-but may simply replay the state updates contained in the validated
-ledger).
+针对裁剪 ``PeerLedger``，本文档简介了 *检查点* 机制。这个机制建立了跨节点网络的 vBlock 验证并允许带检查点的 vBlock 替换丢弃的 ``PeerLedger`` 。这样就不用存储无效交易，减少了存储空间。同样也减小了新加入的节点重新构建状态的工作量（它们在重新执行 ``PeerLedger`` 中的交易来重构状态的过程中，不用验证每笔独立交易的有效性，但是可能需要需要重新执行已验证账本中的状态更新）。
 
-4.2.1. Checkpointing protocol
+4.2.1. 检查点协议
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Checkpointing is performed periodically by the peers every *CHK* blocks,
