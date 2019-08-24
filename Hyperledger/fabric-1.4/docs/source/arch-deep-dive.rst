@@ -337,7 +337,7 @@ submitting client(\ ``tx.clientID``), where:
 ------------------------------------------------------------------------
 
 4.1. 已验证账本（Validated ledger，VLedger）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 为了维护只包含了有效的和已提交的交易的账本的抽象，Peer 节点在状态和账本之外维护了一个 *已验证账本*。这是从账本中过滤掉无效交易之后的哈希链。
 
@@ -361,7 +361,7 @@ vBlock 是通过每一个 Peer 节点连接在一起的哈希链。确切地说�
 所有这些信息连接在一起并由 Peer 节点计算哈希，从而得到已验证账本中 vBlock 的哈希。
 
 4.2. ``PeerLedger`` 检查点（Checkpointing）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 包含无效交易的账本没有必要永久保存。但是 Peer 节点不能简单地丢弃 ``PeerLedger`` 区块，因此当构造完相应 vBlock 之后会对 ``PeerLedger`` 进行裁剪。也就是说，在这种情况下，如果一个新节点加入到了网络中，其他节点不能向新节点发送将会丢弃的区块，也不能向新节点证明它们的 vBlock 的有效性。
 
@@ -370,62 +370,28 @@ vBlock 是通过每一个 Peer 节点连接在一起的哈希链。确切地说�
 4.2.1. 检查点协议
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Checkpointing is performed periodically by the peers every *CHK* blocks,
-where *CHK* is a configurable parameter. To initiate a checkpoint, the
-peers broadcast (e.g., gossip) to other peers message
-``<CHECKPOINT,blocknohash,blockno,stateHash,peerSig>``, where
-``blockno`` is the current blocknumber and ``blocknohash`` is its
-respective hash, ``stateHash`` is the hash of the latest state (produced
-by e.g., a Merkle hash) upon validation of block ``blockno`` and
-``peerSig`` is peer's signature on
-``(CHECKPOINT,blocknohash,blockno,stateHash)``, referring to the
-validated ledger.
+每一个 *CHK* 区块，Peer 节点都会定期执行检查点，*CHK* 是一个可配置参数。要初始化一个检查点，Peer 节点要想其他节点广播消息 ``<CHECKPOINT,blocknohash,blockno,stateHash,peerSig>``，其中 ``blockno`` 是当前区块号，``blocknohash`` 是区块哈希，``stateHash`` 是根据区块 ``blockno`` 的验证得到的最新状态（比如，Merkle 哈希）的哈希，``peerSig`` 是 Peer 节点在 ``(CHECKPOINT,blocknohash,blockno,stateHash)`` 上的签名，表明这是已验证的账本。
 
-A peer collects ``CHECKPOINT`` messages until it obtains enough
-correctly signed messages with matching ``blockno``, ``blocknohash`` and
-``stateHash`` to establish a *valid checkpoint* (see Section 4.2.2.).
+节点收集 ``验证点`` 消息，直到它收集到了足够多正确的和 ``blockno``、 ``blocknohash`` 、 ``stateHash`` 相匹配的签名信息，然后它就会创建一个 *有效的检查点* （参见 4.2.2 节）。
 
-Upon establishing a valid checkpoint for block number ``blockno`` with
-``blocknohash``, a peer:
+一个节点要对包含 ``blocknohash`` 的区块号 ``blockno`` 创建一个有效的检查点，它就要：
 
--  if ``blockno>latestValidCheckpoint.blockno``, then a peer assigns
-   ``latestValidCheckpoint=(blocknohash,blockno)``,
--  stores the set of respective peer signatures that constitute a valid
-   checkpoint into the set ``latestValidCheckpointProof``,
--  stores the state corresponding to ``stateHash`` to
-   ``latestValidCheckpointedState``,
--  (optionally) prunes its ``PeerLedger`` up to block number ``blockno``
-   (inclusive).
+-  如果 ``blockno>latestValidCheckpoint.blockno`` ，节点要指定 ``latestValidCheckpoint=(blocknohash,blockno)``，
+-  将构成一个有效检查点的相关节点的签名集合保存在 ``latestValidCheckpointProof`` 中，
+-  将和 ``stateHash`` 相关的状态保存在 ``latestValidCheckpointedState`` 中，
+-  （可选）修剪到区块号为 ``blockno`` （包含） 的 ``PeerLedger``。
 
-4.2.2. Valid checkpoints
+4.2.2. 有效检查点
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Clearly, the checkpointing protocol raises the following questions:
-*When can a peer prune its ``PeerLedger``? How many ``CHECKPOINT``
-messages are "sufficiently many"?*. This is defined by a *checkpoint
-validity policy*, with (at least) two possible approaches, which may
-also be combined:
+显然，检查点协提出了以下问题：*什么时候节点可以裁剪它的 ``PeerLedger`` ？多少 ``CHECKPOINT`` 信息是 “足够多”？* 。这些定义在 *检查点有效性策略* 中，其中包含（至少）两种方案，可以是组合使用：
 
--  *Local (peer-specific) checkpoint validity policy (LCVP).* A local
-   policy at a given peer *p* may specify a set of peers which peer *p*
-   trusts and whose ``CHECKPOINT`` messages are sufficient to establish
-   a valid checkpoint. For example, LCVP at peer *Alice* may define that
-   *Alice* needs to receive ``CHECKPOINT`` message from Bob, or from
-   *both* *Charlie* and *Dave*.
+-  *本地（特定节点）检查点有效性策略（Local checkpoint validity policy，LCVP）。*在一个给定节点 *p* 的本地策略中，可以指定节点 *p* 新人的节点集合和谁的 ``CHECKPOINT`` 消息可以满足构件有效检查点。例如，*Alice* 节点的 LCVP 定义为 *Alice* 需要接收到 Bob 的或者 *Charlie* 和 *Dave* 两个人的 ``CHECKPOINT`` 消息。
 
--  *Global checkpoint validity policy (GCVP).* A checkpoint validity
-   policy may be specified globally. This is similar to a local peer
-   policy, except that it is stipulated at the system (blockchain)
-   granularity, rather than peer granularity. For instance, GCVP may
-   specify that:
+-  *全局检查点有效性策略（Global checkpoint validity policy，GCVP）。*检查点有效性策略可以指定为全局的。这和本地节点策略类似，只是这个是规定在系统（区块链）粒度，而不是节点粒度。GCVP可以像这样定义：
 
-   -  each peer may trust a checkpoint if confirmed by *11* different
-      peers.
-   -  in a specific deployment in which every orderer is collocated with
-      a peer in the same machine (i.e., trust domain) and where up to
-      *f* orderers may be (Byzantine) faulty, each peer may trust a
-      checkpoint if confirmed by *f+1* different peers collocated with
-      orderers.
+   -  所有节点会信任经过 *11* 个不同节点的确认的检查点。
+   -  在一些特定的部署场景下，在同一个机制（例如，信任域）中，每一个排序节点都搭配了一个 Peer 节点，其中 *f* 个节点可能会发生（拜占庭）错误，所有节点会信任经过 *f+1* 个和排序节点搭配的不同节点确认的检查点。
 
 .. Licensed under Creative Commons Attribution 4.0 International License
    https://creativecommons.org/licenses/by/4.0/
