@@ -25,7 +25,7 @@ Fabric 中的服务发现是如何运作的
 
 有了服务发现，应用程序就不需要在指定要哪些 Peer 来背书了。SDK 可以简单地向发现服务发送一个通道名和链码 ID 来查询需要哪些 Peer 节点。发现服务会计算出包含下边两个对象的描述：
 
-1. **分布**：一个 Peer 节点分组的列表和每组被选择的 Peer 节点的数量。
+1. **布局（Layouts）**：一个 Peer 节点分组的列表和每组被选择的 Peer 节点的数量。
 
 2. **Peer 节点和组的映射**：从分布中的组到通道中的 Peer 节点。实际上，每个组中的节点都应该是同一个组织的，但是因为服务 API 是通用的并且没有区分组织，所以这里用“组”的概念。
 
@@ -46,38 +46,25 @@ Fabric 中的服务发现是如何运作的
 
 换句话说，背书策略需要分别来自 Org1 和 Org2 中的一个 Peer 节点的签名。它还提供了这些组织中可用背书节点的名字（Org1 和 Org2 中的 ``peer0`` 和 ``peer1``）。
 
-The SDK then selects a random layout from the list. In the example above, the
-endorsement policy is Org1 ``AND`` Org2. If instead it was an ``OR`` policy, the SDK
-would randomly select either Org1 or Org2, since a signature from a peer from either
-Org would satisfy the policy.
+然后 SDK 从列表中随机选取一个布局。在上边的示例中，背书策略是 Org1 ``AND`` Org2。如果使用 ``OR`` 的策略，SDK 就会随机选取 Org1 或 Org2，因为只要任意一个组织的 Peer 节点的签名就能够满足该策略。
 
-After the SDK has selected a layout, it selects from the peers in the layout based on a
-criteria specified on the client side (the SDK can do this because it has access to
-metadata like ledger height). For example, it can prefer peers with higher ledger heights
-over others -- or to exclude peers that the application has discovered to be offline
--- according to the number of peers from each group in the layout. If no single
-peer is preferable based on the criteria, the SDK will randomly select from the peers
-that best meet the criteria.
+在 SDK 选定布局之后，它会根据客户端定义的条件从布局中选出 Peer 节点（SDK 能做到这点，是因为它可以访问像账本高度这样的元数据）。例如，它可以根据布局中每个组的 Peer 节点序号选择账本高度较高的节点，或者排除离线的节点。如果选出的节点不止一个，SDK 会随机从中选取一个节点。
 
-Capabilities of the discovery service
+发现服务的作用
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The discovery service can respond to the following queries:
+发现服务可以支持如下查询：
 
-* **Configuration query**: Returns the ``MSPConfig`` of all organizations in the channel
-  along with the orderer endpoints of the channel.
-* **Peer membership query**: Returns the peers that have joined the channel.
-* **Endorsement query**: Returns an endorsement descriptor for given chaincode(s) in
-  a channel.
-* **Local peer membership query**: Returns the local membership information of the
-  peer that responds to the query. By default the client needs to be an administrator
-  for the peer to respond to this query.
 
-Special requirements
+* **配置查询**：返回通道中所有组织和排序节点的 ``MSPConfig``。
+* **节点成员查询**：返回加入通道的 Peer 节点。
+* **背书查询**：返回通道中指定链码的背书描述。
+* **本地节点成员查询**：返回响应查询的 Peer 节点的本地成员信息。默认情况下，需要管理员身份的客户端响应该查询。
+
+特殊要求
 ~~~~~~~~~~~~~~~~~~~~~~
-When the peer is running with TLS enabled the client must provide a TLS certificate when connecting
-to the peer. If the peer isn't configured to verify client certificates (clientAuthRequired is false), this TLS certificate
-can be self-signed.
+
+当 Peer 启用了 TLS 的时候，客户端要连接 Peer 节点也必须提供 TLS 证书。如果 Peer 节点没有要求验证客户端证书（clientAuthRequired 设置为 false），这个 TLS 证书就可以是自签名的。
 
 .. Licensed under Creative Commons Attribution 4.0 International License
    https://creativecommons.org/licenses/by/4.0/
