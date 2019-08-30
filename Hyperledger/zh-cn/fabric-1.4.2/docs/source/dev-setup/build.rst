@@ -1,17 +1,17 @@
-Building Hyperledger Fabric
+构建Hyperledger Fabric
 ---------------------------
 
-The following instructions assume that you have already set up your
-:doc:`development environment <devenv>`.
+下面的指南假设你已经设置好了你的
+:doc:`开发环境 <devenv>`  。
 
-To build Hyperledger Fabric:
+来构建Hyperledger Fabric：
 
 ::
 
     cd $GOPATH/src/github.com/hyperledger/fabric
     make dist-clean all
 
-Running the unit tests
+运行单元测试
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Use the following sequence to run all unit tests
@@ -41,13 +41,12 @@ call/execute
 
 
 
-Running Node.js Client SDK Unit Tests
+运行 Node.js 客户端SDK的单元测试
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must also run the Node.js unit tests to ensure that the Node.js
-client SDK is not broken by your changes. To run the Node.js unit tests,
-follow the instructions
-`here <https://github.com/hyperledger/fabric-sdk-node/blob/master/README.md>`__.
+你需要运行Node.js的单元测试，以此来保证 Node.js client SDK没有因为你的修改而崩溃。
+要运行Node.js的单元测试，请遵循下述指南
+`here <https://github.com/hyperledger/fabric-sdk-node/blob/master/README.md>`__ 。
 
 Building outside of Vagrant
 ---------------------------
@@ -136,17 +135,16 @@ supporting artifacts.
 If you are not trying to build for docker, you only need the natives.
 
 
-Configuration
+配置
 -------------
 
-Configuration utilizes the `viper <https://github.com/spf13/viper>`__
-and `cobra <https://github.com/spf13/cobra>`__ libraries.
+配置采用 `viper <https://github.com/spf13/viper>`__
+和 `cobra <https://github.com/spf13/cobra>`__ 库来实现。
 
-There is a **core.yaml** file that contains the configuration for the
-peer process. Many of the configuration settings can be overridden on
-the command line by setting ENV variables that match the configuration
-setting, but by prefixing with *'CORE\_'*. For example, logging level
-manipulation through the environment is shown below:
+peer包括一个 **core.yaml** 配置文件。
+很多配置可以被带有 *'CORE\_'* 前缀的环境变量覆盖。
+举个例子，日志等级通过环境变量操作：
+
 
 ::
 
