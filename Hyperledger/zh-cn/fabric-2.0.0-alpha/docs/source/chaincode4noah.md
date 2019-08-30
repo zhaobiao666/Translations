@@ -1,31 +1,25 @@
-# Chaincode for Operators
+# 链码操作者教程
 
-## What is Chaincode?
+## 什么是链码？
 
-Chaincode is a program, written in [Go](https://golang.org), [Node.js](https://nodejs.org),
-or [Java](https://java.com/en/) that implements a prescribed interface.
-Chaincode runs in a secured Docker container isolated from the endorsing peer
-process. Chaincode initializes and manages ledger state through transactions
-submitted by applications.
+链码是一个程序，由 `Go <https://golang.org>`_  、 `node.js <https://nodejs.org>`_ 、或者 
+`Java <https://java.com/en/>`_ 编写，来实现一些预定义的接口。链码运行在一个和背书节点进
+程隔离的一个安全的 Docker 容器中。链码的实例化和账本状态的管理通过应用提交的交易来实现。
 
-A chaincode typically handles business logic agreed to by members of the
-network, so it may be considered as a "smart contract". Ledger updates created
-by a chaincode are scoped exclusively to that chaincode and can't be accessed
-directly by another chaincode. However, within the same network, given the
-appropriate permission a chaincode may invoke another chaincode to access
-its state.
+链码一般处理网络中的成员一致认可的商业逻辑，所以它类似于“智能合约”。链码创建的状态是被唯
+一绑定在该链码上的，其他链码不能直接访问。然而，在同一个网络中，赋予适当的权限，一个链码
+也可以调用其他链码来访问他的状态。
 
-In the following sections, we will explore chaincode through the eyes of a
-blockchain network operator rather than an application developer. Chaincode
-operators can use this tutorial to learn how to use the Fabric chainode
-lifecycle to deploy and manage chaincode on their network.
+在下边的章节中，我们将以区块链操作员 Noah 的视角来解释链码。为了 Noah 的兴趣，我们将关注
+链码操作的生命周期；打包、安装、实例化和升级链码的过程是区块链网络中链码操作的生命周期中的
+方法。
 
-## Chaincode lifecycle
+## 链码生命周期
 
-The Fabric chaincode lifecycle is a process that allows multiple organizations
-to agree on how a chaincode will be operated before it can be used on a channel.
-The tutorial will discuss how a chaincode operator would use the Fabric
-lifecycle to perform the following tasks:
+Hyperledger Fabric API 允许和区块链网络中的多种节点进行交互包括 peer 节点、排序节点、MSP，
+它还允许在背书节点打包、安装、实例化和升级链码。 Hyperledger Fabric 特定语言的 SDK 将 
+Hyperledger Fabric API 的功能抽象出来以方便应用开发，同样也可以用来管理链码生命周期。另外，
+Hyperledger Fabric API 还可以直接通过 CLI 访问，本文档将使用这种方式。
 
 - [Install and define a chaincode](#install-and-define-a-chaincode)
 - [Upgrade a chaincode](#upgrade-a-chaincode)
