@@ -1,75 +1,64 @@
-使用Gerrit进行工作
+Gerrit 的使用
 -------------------
 
-按照这些说明通过Gerrit审查系统在Hyperledger Fabric上进行协作。
+按照这些说明通过 Gerrit 审查系统在 Hyperledger Fabric 上进行协作。
 
-请确保你已经订阅了 `邮件列表 <https://lists.hyperledger.org/mailman/listinfo/hyperledger-fabric>`__ 。
-当然如果你需要帮助的话也可以在 `chat <https://chat.hyperledger.org/>`__ 寻求帮助。
+请确保你已经订阅了 `邮件列表 <https://lists.hyperledger.org/mailman/listinfo/hyperledger-fabric>`__ 。当然如果你需要帮助的话也可以在 `chat <https://chat.hyperledger.org/>`__ 寻求帮助。
 
-Gerrit为用户分配了以下角色：
+Gerrit 为用户分配了以下角色：
 
--  **Submitters**: 可以提交变更以供考虑，审查别人的代码变更，分别通过投票 +1 或者 -1 接受或者拒绝的建议。
--  **Maintainers**: 基于审查者的反馈进行 +2 或者 -2 的投票，以此来批准或者拒绝变更。
--  **Builders**: (例如 Jenkins)可以使用自动化基础架构来验证变更。
+-  **提交者（Submitters）**: 可以提交变更，审查别人的代码变更，分别通过投票 +1 或者 -1 接受或者拒绝的建议。
+-  **维护者（Maintainers）**: 基于审查者的反馈进行 +2 或者 -2 的投票，以此来批准或者拒绝变更。
+-  **构建者（Builders）**: （例如 Jenkins）可以使用自动化基础架构来验证变更。
 
-维护者应当熟悉  :doc:`审核流程 <reviewing>` 。
-但是，任何人都是非常欢迎来审核变更的，因此这个文档才有存在的价值。
+维护者应当熟悉 :doc:`审核流程 <reviewing>` 。但是，非常欢迎任何人来审核变更，这样才会发现文档的价值。
 
 Git-review
 ~~~~~~~~~~
 
-有一个非常有用的和Gerrit合作的工具叫做
-`git-review <https://www.mediawiki.org/wiki/Gerrit/git-review>`__ 。
-这个命令行工具可以帮你执行大部分后续工作。
-当然，强烈推荐阅读以下内容，以便了解幕后发生的事情。
+有一个非常有用的和 Gerrit 合作的工具叫做 `git-review <https://www.mediawiki.org/wiki/Gerrit/git-review>`__ 。这个命令行工具可以帮你执行大部分后续工作。当然，强烈推荐阅读以下内容，以便了解幕后发生的事情。
 
 深入了解 Gerrit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Gerrit的全面演练超出了本文档的范围。互联网上有大量的资源可供使用。
-可以在 `这里 <https://www.mediawiki.org/wiki/Gerrit/Tutorial>`__ 找到一个好的总结。
-我们还为你提供了一份有用的  :doc:`最佳实践 <best-practices>` 。
+Gerrit 的全面学习超出了本文档的范围。互联网上有大量的资源可供使用。可以在 `这里 <https://www.mediawiki.org/wiki/Gerrit/Tutorial>`__ 找到一个好的总结。我们还为你提供了一份有用的 :doc:`最佳实践 <best-practices>` 。
 
 配合本地仓库使用
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 无论处理新特性还是错误：
 
-1. 打开Gerrit的 `项目页面 <https://gerrit.hyperledger.org/r/#/admin/projects/>`__ 。
+1. 打开 Gerrit 的 `项目页面 <https://gerrit.hyperledger.org/r/#/admin/projects/>`__ 。
 2. 选择一个你希望工作的项目。
-3. 打开一个终端窗口，然后使用 ``Clone with git hook`` URL克隆项目。
-确定使用  ``ssh`` ，这将会简化授权：
-
+3. 打开一个终端窗口，然后使用 ``Clone with git hook`` URL 克隆项目。确定使用 ``ssh``，这将会简化授权：
 
 .. code::
 
    git clone ssh://LFID@gerrit.hyperledger.org:29418/fabric && scp -p -P 29418 LFID@gerrit.hyperledger.org:hooks/commit-msg fabric/.git/hooks/
 
-.. note:: 如果要克隆项目仓库，你需要将它克隆到 ``$GOPATH/src/github.com/hyperledger`` 目录下，
-          这样它才能构建，这样你才能使用Vagrant :doc:`开发环境 <../dev-setup/devenv>` 。
+.. note:: 如果要克隆项目仓库，你需要将它克隆到 ``$GOPATH/src/github.com/hyperledger`` 目录下，这样它才能构建，并使用 Vagrant :doc:`开发环境 <../dev-setup/devenv>` 。
 
-4. 在你克隆的仓库创建描述性的分支。
+4. 在你克隆的仓库创建一个分支，分支的名字最好能描述该分支的功能。
 
 ::
 
     cd fabric
     git checkout -b issue-nnnn
 
-5. 提交你的代码。创建有关深入探讨的提交，请阅读  :doc:`如何提交更改的文档 <changes>` 。
+5. 提交你的代码。要创建可以深入探讨的提交，请阅读 :doc:`如何提交更改的文档 <changes>` 。
 
 ::
 
     git commit -s -a
 
-请输入精确的可读的消息进行提交。
+请输入准确的可读的消息然后提交。
 
-6. 任何影响文档的代码变更都应该伴随对文档和测试的相应更改（或者添加）。
-   这保证了如果变更被合并了，那同样所有的有关的文档和测试都会更新。
+6. 任何影响文档的代码变更都应该有对文档和测试的相应更改（或者添加）。这保证了如果变更被合并了，那同样所有的有关的文档和测试都会更新。
 
 提交变更
 ~~~~~~~~~~~~~~~~~~~
 
-目前，Gerrit是提交用以审核的变更的唯一方法。
+目前，Gerrit 是提交用以审核的变更的唯一方法。
 
 .. note:: 请查看创建和提交变更的 :doc:`指南 <changes>` 。
 

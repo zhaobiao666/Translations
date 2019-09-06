@@ -3,7 +3,7 @@
 
 .. image:: images/hyperledger_fabric_logo_color.png
 
-这是一个企业级授权的分布式账本平台，为多种业界应用场景提供模块化且灵活性的平台支持。
+这是一个为多数企业级业务场景提供模块化且灵活性支持的企业级授权分布式账本平台。
 
 .. raw:: html
 
@@ -30,7 +30,7 @@
    questions
    status
 
-.. note:: 如果您有其他该文档未谈及的疑问，或者在任何一个教程中遇到问题，请您访问 :doc:`questions` 页面了解关于额外帮助的温馨提示。
+.. note:: 如果您有其他该文档未谈及的疑问，或者在任何一个教程中遇到问题，请访问 :doc:`questions` 页面了解如何获取额外帮助。
 
 .. Licensed under Creative Commons Attribution 4.0 International License
    https://creativecommons.org/licenses/by/4.0/
