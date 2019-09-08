@@ -1,10 +1,9 @@
-构建Hyperledger Fabric
+构建 Hyperledger Fabric
 ---------------------------
 
-下面的指南假设你已经设置好了你的
-:doc:`开发环境 <devenv>`  。
+下面的教程假设你已经设置好了你的 :doc:`开发环境 <devenv>`  。
 
-来构建Hyperledger Fabric：
+构建 Hyperledger Fabric：
 
 ::
 
@@ -14,26 +13,21 @@
 运行单元测试
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Use the following sequence to run all unit tests
+使用下面的命令运行期所有单元测试
 
 ::
 
     cd $GOPATH/src/github.com/hyperledger/fabric
     make unit-test
 
-To run a subset of tests, set the TEST_PKGS environment variable.
-Specify a list of packages (separated by space), for example:
+要它运行一部分测试的话，要设置环境变量 TEST_PKGS。指定一个包的列表（用空格隔开），例如：
 
 ::
 
     export TEST_PKGS="github.com/hyperledger/fabric/core/ledger/..."
     make unit-test
 
-To run a specific test use the ``-run RE`` flag where RE is a regular
-expression that matches the test case name. To run tests with verbose
-output use the ``-v`` flag. For example, to run the ``TestGetFoo`` test
-case, change to the directory containing the ``foo_test.go`` and
-call/execute
+要运行指定的测试，需要使用 ``-run RE`` 参数，RE 的意思是正则匹配测试用例的名字。使用 ``-v`` 参数显示输出。例如运行测试用例 ``TestGetFoo``，切换到包含 ``foo_test.go`` 的目录，然后执行：
 
 ::
 
@@ -41,34 +35,23 @@ call/execute
 
 
 
-运行 Node.js 客户端SDK的单元测试
+运行 Node.js 客户端 SDK 的单元测试
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-你需要运行Node.js的单元测试，以此来保证 Node.js client SDK没有因为你的修改而崩溃。
-要运行Node.js的单元测试，请遵循下述指南
-`here <https://github.com/hyperledger/fabric-sdk-node/blob/master/README.md>`__ 。
+要保证 Node.js client SDK 没有因为你的修改而出问题，你就必须运行 Node.js 单元测试。
+要运行 Node.js 单元测试，请遵循`下述 <https://github.com/hyperledger/fabric-sdk-node/blob/master/README.md>`__ 指南。
 
-Building outside of Vagrant
+在 Vagrant 之外构建
 ---------------------------
 
-It is possible to build the project and run peers outside of Vagrant.
-Generally speaking, one has to 'translate' the vagrant `setup
-file <https://github.com/hyperledger/fabric/blob/master/devenv/setup.sh>`__
-to the platform of your choice.
+在 Vagrant 之外构建工程和运行节点也是可以的。你需要将 Vagrant `配置文件 <https://github.com/hyperledger/fabric/blob/master/devenv/setup.sh>`__ “翻译” 成与你选择的平台匹配的内容。
 
-Building on Z
+在 Z 上构建
 ~~~~~~~~~~~~~
 
-To make building on Z easier and faster, `this
-script <https://github.com/hyperledger/fabric/blob/master/devenv/setupRHELonZ.sh>`__
-is provided (which is similar to the `setup
-file <https://github.com/hyperledger/fabric/blob/master/devenv/setup.sh>`__
-provided for vagrant). This script has been tested only on RHEL 7.2 and
-has some assumptions one might want to re-visit (firewall settings,
-development as root user, etc.). It is however sufficient for
-development in a personally-assigned VM instance.
+为了方便快捷地在 Z 上构建，我们提供了 `这个脚本 <https://github.com/hyperledger/fabric/blob/master/devenv/setupRHELonZ.sh>`__ （和 Vagrant 的 `配置文件 <https://github.com/hyperledger/fabric/blob/master/devenv/setup.sh>`__ 类似）。该脚本只在 RHEL 7.2 上测试过，并且有一些设置你可能需要参考（防火墙设置，使用 root 用户开发等）。它仅仅适用于在个人开发者的虚拟机上进行开发。
 
-To get started, from a freshly installed OS:
+从一个新安装的系统开始：
 
 ::
 
@@ -79,29 +62,19 @@ To get started, from a freshly installed OS:
     git clone http://gerrit.hyperledger.org/r/fabric
     source fabric/devenv/setupRHELonZ.sh
 
-From this point, you can proceed as described above for the Vagrant
-development environment.
+后边的步骤请参考 Vagrant 开发环境。
 
 ::
 
     cd $GOPATH/src/github.com/hyperledger/fabric
     make peer unit-test
 
-Building on Power Platform
+在 Power 平台上构建
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Development and build on Power (ppc64le) systems is done outside of
-vagrant as outlined `here <#building-outside-of-vagrant>`__. For ease
-of setting up the dev environment on Ubuntu, invoke `this
-script <https://github.com/hyperledger/fabric/blob/master/devenv/setupUbuntuOnPPC64le.sh>`__
-as root. This script has been validated on Ubuntu 16.04 and assumes
-certain things (like, development system has OS repositories in place,
-firewall setting etc) and in general can be improvised further.
+我们已经实现了在 vagrant 意外的 Power（ppc64le）系统上构建，参考 `这里<#building-outside-of-vagrant>`__ 。要想方便地在 Ubuntu 环境中构建，请使用 root 用户执行 `这个脚本 <https://github.com/hyperledger/fabric/blob/master/devenv/setupUbuntuOnPPC64le.sh>`__ 。这个脚本已经在 Ubuntu 16.04 上验证过了，但是也需要设置一些内容（比如，安装系统仓库，防火墙设置等等），这个脚本可以进一步改进。
 
-To get started on Power server installed with Ubuntu, first ensure you
-have properly setup your Host's `GOPATH environment
-variable <https://github.com/golang/go/wiki/GOPATH>`__. Then, execute
-the following commands to build the fabric code:
+要开始在 Ubuntu 上安装的 Power 服务器上构建，你首先要确保设置好了 `GOPATH 环境变量 <https://github.com/golang/go/wiki/GOPATH>`__ 。然后执行如下命令构建 Fabric 。
 
 ::
 
@@ -112,14 +85,10 @@ the following commands to build the fabric code:
     cd $GOPATH/src/github.com/hyperledger/fabric
     make dist-clean all
 
-Building on Centos 7
+在 Centos 7 上构建
 ~~~~~~~~~~~~~~~~~~~~
 
-You will have to build CouchDB from source because there is no package
-available from the distribution. If you are planning a multi-orderer
-arrangement, you will also need to install Apache Kafka from source.
-Apache Kafka includes both Zookeeper and Kafka executables and
-supporting artifacts.
+你必须从源码安装 CouchDB，因为该发行版上没有 CouchDB 的安装包。如果你想使用多个排序节点，你同样需要从源码安装 Apache Kafka。Apache Kafka 包括 Zookeeper 和 Kafka 的可执行程序和相关配置文件。
 
 ::
 
@@ -132,19 +101,14 @@ supporting artifacts.
    export PATH=$GOPATH/bin:$PATH
    make native
 
-If you are not trying to build for docker, you only need the natives.
-
+如果你不想使用构建 Docker 镜像，那你就需要原生的。
 
 配置
 -------------
 
-配置采用 `viper <https://github.com/spf13/viper>`__
-和 `cobra <https://github.com/spf13/cobra>`__ 库来实现。
+配置采用 `viper <https://github.com/spf13/viper>`__ 和 `cobra <https://github.com/spf13/cobra>`__ 库来实现。
 
-peer包括一个 **core.yaml** 配置文件。
-很多配置可以被带有 *'CORE\_'* 前缀的环境变量覆盖。
-举个例子，日志等级通过环境变量操作：
-
+peer 程序需要使用 **core.yaml** 作为配置文件。很多配置都可以被带有 *'CORE\_'* 前缀的环境变量覆盖。例如，通过环境变量设置日志级别：
 
 ::
 
