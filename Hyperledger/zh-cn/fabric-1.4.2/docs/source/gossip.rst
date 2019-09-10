@@ -1,70 +1,33 @@
-Gossip data dissemination protocol
+Gossip 数据传播协议
 ==================================
 
-Hyperledger Fabric optimizes blockchain network performance, security,
-and scalability by dividing workload across transaction execution
-(endorsing and committing) peers and transaction ordering nodes. This
-decoupling of network operations requires a secure, reliable and
-scalable data dissemination protocol to ensure data integrity and
-consistency. To meet these requirements, Fabric implements a
-**gossip data dissemination protocol**.
+Hyperledger Fabric 通过将工作负载拆分为交易执行（背书和提交）节点和交易排序节点的方式来优化区块链网络的性能、安全性和可扩展性。对网络操作这样的分割就需要一个安全、可靠和可扩展的数据传播协议来保证数据的完整性和一致性。为了满足这个需求，Fabric 实现了 **Gossip 数据传播协议** 。
 
-Gossip protocol
+Gossip 协议
 ---------------
 
-Peers leverage gossip to broadcast ledger and channel data in a scalable fashion.
-Gossip messaging is continuous, and each peer on a channel is
-constantly receiving current and consistent ledger data from multiple
-peers. Each gossiped message is signed, thereby allowing Byzantine participants
-sending faked messages to be easily identified and the distribution of the
-message(s) to unwanted targets to be prevented. Peers affected by delays, network
-partitions, or other causes resulting in missed blocks will eventually be
-synced up to the current ledger state by contacting peers in possession of these
-missing blocks.
+Peer 节点通过 gossip 协议来广播来传播账本和通道数据。Gossip 消息是持续的，通道中的每一个 Peer 节点不断地从多个节点接受当前一致的账本数据。每一个 gossip 消息都是带有签名的，因此拜占庭成员发送的伪造消息很容易就会被识别，并且非目标节点也不会接受与其无关的消息。Peer 节点会受到延迟、网络分区或者其他原因影响而丢失区块，这时节点会通过从其他拥有这些丢失区块的节点处同步账本。
 
-The gossip-based data dissemination protocol performs three primary functions on
-a Fabric network:
+基于 gossip 的数据传播协议在 Fabric 网络中有三个主要功能：
 
-1. Manages peer discovery and channel membership, by continually
-   identifying available member peers, and eventually detecting peers that have
-   gone offline.
-2. Disseminates ledger data across all peers on a channel. Any peer with data
-   that is out of sync with the rest of the channel identifies the
-   missing blocks and syncs itself by copying the correct data.
-3. Bring newly connected peers up to speed by allowing peer-to-peer state
-   transfer update of ledger data.
+1. 通过持续的识别可用成员节点来管理节点发现和通道成员，还有检测离线节点。
+2. 向通道中的所有节点传播账本数据。所有没有和当前通道的数据同步的节点会识别丢失的区块，并将正确的数据复制过来以使自己同步。
+3. 通过点对点的数据传输方式，使新节点以最快速度连接到网络中并同步账本数据。
 
-Gossip-based broadcasting operates by peers receiving messages from
-other peers on the channel, and then forwarding these messages to a number of
-randomly selected peers on the channel, where this number is a configurable
-constant. Peers can also exercise a pull mechanism rather than waiting for
-delivery of a message. This cycle repeats, with the result of channel
-membership, ledger and state information continually being kept current and in
-sync. For dissemination of new blocks, the **leader** peer on the channel pulls
-the data from the ordering service and initiates gossip dissemination to peers
-in its own organization.
+Peer 节点基于 Gossip 的数据广播操作接收通道中其他的节点的信息，然后将这些信息随机发送给通道上的一些其他节点，随机发送的节点数量是一个可配置的常量。Peer 节点可以用“拉”的方式获取信息而不用一致等待。这是一个重复的过程，以使通道中的成员、账本和状态信息同步并保持最新。在分发新区块的时候，通道中**主**节点从排序服务拉取数据然后开始在它所在的组织的节点中分发。
 
-Leader election
+领导者选举
 ---------------
 
-The leader election mechanism is used to **elect** one peer per organization
-which will maintain connection with the ordering service and initiate distribution of
-newly arrived blocks across the peers of its own organization. Leveraging leader election
-provides the system with the ability to efficiently utilize the bandwidth of the ordering
-service. There are two possible modes of operation for a leader election module:
+领导者的选举机制用于在每一个组织中**选举**出一个用于链接排序服务和初始分发新区块的节点。领导者选举使得系统可以有效地利用排序服务的带宽。领导者选举模型有两种模式可供选择：
 
-1. **Static** --- a system administrator manually configures a peer in an organization to
-   be the leader.
-2. **Dynamic** --- peers execute a leader election procedure to select one peer in an
-   organization to become leader.
+1. **静态模式**：系统管理员手动配置一个节点为组织的主节点。
+2. **动态模式**：组织中的节点自己选举出一个主节点。
 
-Static leader election
+静态主节点选举
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Static leader election allows you to manually define one or more peers within an
-organization as leader peers.  Please note, however, that having too many peers connect
-to the ordering service may result in inefficient use of bandwidth. To enable static
-leader election mode, configure the following parameters within the section of ``core.yaml``:
+静态主节点选举允许你手动设置组织中的一个或多个节点节点为主节点。请注意，太多的节点连接到排序服务可能会影响带宽使用效率。要开启静态主节点选举模式，需要配置 ``core.yaml`` 中的如下部分：
 
 ::
 
@@ -74,7 +37,7 @@ leader election mode, configure the following parameters within the section of `
             useLeaderElection: false
             orgLeader: true
 
-Alternatively these parameters could be configured and overridden with environmental variables:
+另外，这些配置的参数可以通过环境变量覆盖：
 
 ::
 
@@ -82,38 +45,27 @@ Alternatively these parameters could be configured and overridden with environme
     export CORE_PEER_GOSSIP_ORGLEADER=true
 
 
-.. note:: The following configuration will keep peer in **stand-by** mode, i.e.
-          peer will not try to become a leader:
+.. note:: 下边的设置会使节点进入**旁观者**模式，也就是说，它不会试图成为一个主节点：
 
 ::
 
     export CORE_PEER_GOSSIP_USELEADERELECTION=false
     export CORE_PEER_GOSSIP_ORGLEADER=false
 
-2. Setting ``CORE_PEER_GOSSIP_USELEADERELECTION`` and ``CORE_PEER_GOSSIP_ORGLEADER``
-   with ``true`` value is ambiguous and will lead to an error.
-3. In static configuration organization admin is responsible to provide high availability
-   of the leader node in case for failure or crashes.
+不要将 ``CORE_PEER_GOSSIP_USELEADERELECTION`` 和 ``CORE_PEER_GOSSIP_ORGLEADER`` 都设置为 ``true``，这将会导致错误。
 
-Dynamic leader election
+在静态配置组织中，主节点失效或者崩溃都需要管理员进行处理。
+
+动态主节点选举
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Dynamic leader election enables organization peers to **elect** one peer which will
-connect to the ordering service and pull out new blocks. This leader is elected
-for an organization's peers independently.
+动态主节点选举使组织中的节点可以**选举**一个节点来连接排序服务并拉取新区块。这个主节点由每个组织单独选举。
 
-A dynamically elected leader sends **heartbeat** messages to the rest of the peers
-as an evidence of liveness. If one or more peers don't receive **heartbeats** updates
-during a set period of time, they will elect a new leader.
+动态选举出的的主节点通过向其他节点发送**心跳**信息来证明自己处于存活状态。如果一个或者更多的节点在一个段时间内没有收到**心跳**信息，它们就会选举出一个新的主节点。
 
-In the worst case scenario of a network partition, there will be more than one
-active leader for organization to guarantee resiliency and availability to allow
-an organization's peers to continue making progress. After the network partition
-has been healed, one of the leaders will relinquish its leadership. In
-a steady state with no network partitions, there will be
-**only** one active leader connecting to the ordering service.
+在网络比较差有多个网络分区存在的情况下，组织中会存在多个主节点以保证组织中节点的正常工作。在网络恢复正常之后，其中一个主节点会放弃领导权。在一个没有网络分区的稳定状态下，会只有**唯一**一个活动的主节点和排序服务相连。
 
-Following configuration controls frequency of the leader **heartbeat** messages:
+下边的配置控制主节点**心跳**信息的发送频率：
 
 ::
 
@@ -123,8 +75,7 @@ Following configuration controls frequency of the leader **heartbeat** messages:
             election:
                 leaderAliveThreshold: 10s
 
-In order to enable dynamic leader election, the following parameters need to be configured
-within ``core.yaml``:
+为了开启动态节点选举，需要配置 ``core.yaml`` 中的以下参数：
 
 ::
 
@@ -134,18 +85,17 @@ within ``core.yaml``:
             useLeaderElection: true
             orgLeader: false
 
-Alternatively these parameters could be configured and overridden with environment variables:
+同样，这些配置的参数可以通过环境变量覆盖：
 
 ::
 
     export CORE_PEER_GOSSIP_USELEADERELECTION=true
     export CORE_PEER_GOSSIP_ORGLEADER=false
 
-Anchor peers
+锚节点
 ------------
 
-Anchor peers are used by gossip to make sure peers in different organizations
-know about each other.
+gossip 利用锚节点来保证不同组织间的互相通信。
 
 When a configuration block that contains an update to the anchor peers is committed,
 peers reach out to the anchor peers and learn from them about all of the peers known
