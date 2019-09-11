@@ -1,10 +1,9 @@
-Read-Write set semantics
+读写集语义
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-This document discusses the details of the current implementation about
-the semantics of read-write sets.
+本文档讨论了目前实现的读写集语义的细节。
 
-Transaction simulation and read-write set
+交易模拟和读写集
 '''''''''''''''''''''''''''''''''''''''''
 
 During simulation of a transaction at an ``endorser``, a read-write set

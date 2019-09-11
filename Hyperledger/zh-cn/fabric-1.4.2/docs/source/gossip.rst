@@ -97,99 +97,43 @@ Peer 节点基于 Gossip 的数据广播操作接收通道中其他的节点的�
 
 gossip 利用锚节点来保证不同组织间的互相通信。
 
-When a configuration block that contains an update to the anchor peers is committed,
-peers reach out to the anchor peers and learn from them about all of the peers known
-to the anchor peer(s). Once at least one peer from each organization has contacted an
-anchor peer, the anchor peer learns about every peer in the channel. Since gossip
-communication is constant, and because peers always ask to be told about the existence
-of any peer they don't know about, a common view of membership can be established for
-a channel.
+当提交了一个包含锚节点更新的配置区块时，Peer 节点会连接到锚节点并获取它所知道的所有节点信息。一个组织中至少有一个节点联系到了锚节点，锚节点就可以获取通道中所有节点的信息。因为 gossip 的通信是固定的，而且 Peer 节点总会被告知它们不知道的节点，所以可以建立起一个通道上成员的视图。
 
-For example, let's assume we have three organizations---`A`, `B`, `C`--- in the channel
-and a single anchor peer---`peer0.orgC`--- defined for organization `C`. When `peer1.orgA`
-(from organization `A`) contacts `peer0.orgC`, it will tell it about `peer0.orgA`. And
-when at a later time `peer1.orgB` contacts `peer0.orgC`, the latter would tell the
-former about `peer0.orgA`. From that point forward, organizations `A` and `B` would
-start exchanging membership information directly without any assistance from
-`peer0.orgC`.
+例如，假设我们在一个通道有三个组织 `A`、`B`和`C`，一个组织 `C` 定义的锚节点 `peer0.orgC`。当 `peer1.orgA` 联系到 `peer0.orgC` 时，它将会告诉 `peer0.orgC` 有关 `peer0.orgA` 的信息。稍后等 `peer1.orgB` 联系到 `peer0.orgC` 时，后者也会告诉前者关于 `peer0.orgA` 的信息。就像之前所说的，组织 `A` 和 `B` 可以不通过 `peer0.orgC` 而直接交换成员信息。
 
-As communication across organizations depends on gossip in order to work, there must
-be at least one anchor peer defined in the channel configuration. It is strongly
-recommended that every organization provides its own set of anchor peers for high
-availability and redundancy. Note that the anchor peer does not need to be the
-same peer as the leader peer.
+由于组织间的通信依赖于 gossip，所以在通道配置中必须至少有一个锚节点。为了系统的可用性和冗余性，我们强烈建议每个组织都提供自己的一些锚节点。注意，锚节点不一定和主节点是同一个节点。
 
-External and internal endpoints
+外部和内部端点
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order for gossip to work effectively, peers need to be able to obtain the
-endpoint information of peers in their own organization as well as from peers in
-other organizations.
+为了让 gossip 高效地工作，Peer 节点需要包含其所在组织以及其他组织的端点信息。
 
-When a peer is bootstrapped it will use ``peer.gossip.bootstrap`` in its
-``core.yaml`` to advertise itself and exchange membership information, building
-a view of all available peers within its own organization.
+当一个 Peer 节点启动的时候，它会使用 ``core.yaml`` 文件中的 ``peer.gossip.bootstrap`` 来广播自己并交换成员信息，并建立所属组织中可用节点的视图。 
 
-The ``peer.gossip.bootstrap`` property in the ``core.yaml`` of the peer is
-used to bootstrap gossip **within an organization**. If you are using gossip, you
-will typically configure all the peers in your organization to point to an initial set of
-bootstrap peers (you can specify a space-separated list of peers). The internal
-endpoint is usually auto-computed by the peer itself or just passed explicitly
-via ``core.peer.address`` in ``core.yaml``. If you need to overwrite this value,
-you can export ``CORE_PEER_GOSSIP_ENDPOINT`` as an environment variable.
+``core.yaml`` 文件中的 ``peer.gossip.bootstrap`` 属性用于在 **一个组织内部** 启动 gossip。如果你要使用 gossip，通常会为组织中的所有节点配置为一个指向一组启动节点（使用空格隔开的节点列表）。内部端点通常是由 Peer 节点自动计算的，或者在 ``core.yaml`` 中的 ``core.peer.address`` 指明。
 
-Bootstrap information is similarly required to establish communication **across
-organizations**. The initial cross-organization bootstrap information is provided
-via the "anchor peers" setting described above. If you want to make other peers
-in your organization known to other organizations, you need to set the
-``peer.gossip.externalendpoint`` in the ``core.yaml`` of your peer.
-If this is not set, the endpoint information of the peer will not be broadcast
-to peers in other organizations.
+启动信息也同样需要建立**跨组织**的通信。初始的跨组织启动信息通过上面所说的“锚节点”设置提供。如果想让其他组织知道你所在组织中的其他节点，你需要设置 ``core.yaml`` 文件中的 ``peer.gossip.externalendpoint``。如果没有设置，节点的端点信息就不会广播到其他组织的 Peer 节点。
 
-To set these properties, issue:
+这些属性的设置如下：
 
 ::
 
     export CORE_PEER_GOSSIP_BOOTSTRAP=<a list of peer endpoints within the peer's org>
     export CORE_PEER_GOSSIP_EXTERNALENDPOINT=<the peer endpoint, as known outside the org>
 
-Gossip messaging
-----------------
+Gossip 消息传递
+----------------------------
 
-Online peers indicate their availability by continually broadcasting "alive"
-messages, with each containing the **public key infrastructure (PKI)** ID and the
-signature of the sender over the message. Peers maintain channel membership by collecting
-these alive messages; if no peer receives an alive message from a specific peer,
-this "dead" peer is eventually purged from channel membership. Because "alive"
-messages are cryptographically signed, malicious peers can never impersonate
-other peers, as they lack a signing key authorized by a root certificate
-authority (CA).
+在线的节点通过持续广播“存活”消息来表明可用，每一条消息都包含了“公钥基础设施（PKI）”ID 和发送者的签名。节点通过收集这些存活的消息来维护通道成员。如果没有节点收到某个节点的存活信息，这个“死亡”的节点会被从通道成员关系中剔除。因为“存活”的消息是经过签名的，恶意节点无法假冒其他节点，因为他们没有根 CA 授权的签名密钥。
 
-In addition to the automatic forwarding of received messages, a state
-reconciliation process synchronizes **world state** across peers on each
-channel. Each peer continually pulls blocks from other peers on the channel,
-in order to repair its own state if discrepancies are identified. Because fixed
-connectivity is not required to maintain gossip-based data dissemination, the
-process reliably provides data consistency and integrity to the shared ledger,
-including tolerance for node crashes.
+除了自动转发接收到的消息之外，状态协调过程还会在每个通道上的 Peer 节点之间同步**世界状态**。每个 Peer 节点都持续从通道中的其他节点拉取区块，来修复他们缺失的状态。因为基于 gossip 的数据分发不需要固定的连接，所以该过程可靠地提供共享账本的一致性和完整性，包括对节点崩溃的容忍。
 
-Because channels are segregated, peers on one channel cannot message or
-share information on any other channel. Though any peer can belong
-to multiple channels, partitioned messaging prevents blocks from being disseminated
-to peers that are not in the channel by applying message routing policies based
-on a peers' channel subscriptions.
+因为通道是隔离的，所以一个通道中的节点无法和其他通道通信或者共享信息。尽管节点可以加入多个通道，但是分区消息传递通过基于 Peer 节点所在通道的应用消息路由策略，来防止区块被分发到其他通道的 Peer 节点。
 
-.. note:: 1. Security of point-to-point messages are handled by the peer TLS layer, and do
-          not require signatures. Peers are authenticated by their certificates,
-          which are assigned by a CA. Although TLS certs are also used, it is
-          the peer certificates that are authenticated in the gossip layer. Ledger blocks
-          are signed by the ordering service, and then delivered to the leader peers on a channel.
+.. note:: 
+          1. 通过 Peer 节点 TLS 层来处理点对点消息的安全性，不需要使用签名。Peer 节点通过 CA 签发的证书来授权。尽管没有使用 TLS 证书，但在 gossip 层使用了经过授权的 Peer 节点证书。账本区块通过排序服务签名，然后被分发到通道上的主节点。
 
-          2. Authentication is governed by the membership service provider for the
-          peer. When the peer connects to the channel for the first time, the
-          TLS session binds with the membership identity. This essentially
-          authenticates each peer to the connecting peer, with respect to
-          membership in the network and channel.
+          2. 通过 Peer 节点的成员服务提供者来管理授权。当 Peer 节点第一次连接到通道时，TLS 会话将与成员身份绑定。这就利用网络和通道中成员的身份来验证了与 Peer 节点相连的节点的身份。
 
 .. Licensed under Creative Commons Attribution 4.0 International License
    https://creativecommons.org/licenses/by/4.0/
