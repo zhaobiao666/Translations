@@ -125,56 +125,29 @@
 私有数据的删除
 ~~~~~~~~~~~~~~~~~~~~
 
-Private data can be periodically purged from peers. For more details,
-see the ``blockToLive`` collection definition property above.
+Peer 可以周期性地删除私有数据。更多细节请查看上边集合定义属性中的 ``blockToLive`` 。
 
-Additionally, recall that prior to commit, peers store private data in a local
-transient data store. This data automatically gets purged when the transaction
-commits.  But if a transaction was never submitted to the channel and
-therefore never committed, the private data would remain in each peer’s
-transient store.  This data is purged from the transient store after a
-configurable number blocks by using the peer’s
-``peer.gossip.pvtData.transientstoreMaxBlockRetention`` property in the peer
-``core.yaml`` file.
+另外，重申一下，在提交之前，私有数据存储在 Peer 节点的本地临时数据存储中。这些数据在交易提交之后会自动被删除。但是如果交易没有被提交，私有数据就会一直保存在临时数据存储中。Peer 节点会根据配置文件 ``core.yaml`` 中的 ``peer.gossip.pvtData.transientstoreMaxBlockRetention`` 的配置周期性的删除临时存储中的数据。
 
 升级一个集合定义
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To update a collection definition or add a new collection, you can upgrade
-the chaincode to a new version and pass the new collection configuration
-in the chaincode upgrade transaction, for example using the ``--collections-config``
-flag if using the CLI. If a collection configuration is specified during the
-chaincode upgrade, a definition for each of the existing collections must be
-included.
+如果要升级一个集合定义或者增加一个新的定义，你可以将链码更新到新版本并将集合配置新的集合配置传递给链码更新交易。例如在 CLI 中使用 ``--collections-config`` 标示。如果在链码更新期间指定了集合配置，所有已存在的集合的定义也必须包含其中。
 
-When upgrading a chaincode, you can add new private data collections,
-and update existing private data collections, for example to add new
-members to an existing collection or change one of the collection definition
-properties. Note that you cannot update the collection name or the
-blockToLive property, since a consistent blockToLive is required
-regardless of a peer's block height.
+升级链码的时候，你可以新增和更新私有数据集合，例如向已存在的集合中添加新成员或者改变一个集合定一个的属性。注意，你不能更新集合名称和 blockToLive 属性，因为无论节点区块高度如何，都需要一个一致的 blockToLive 。
 
-集合的更新会在一个 peer 提交包含链码更新交易的区块的时候生效。注意，集合是不能够被删除的，因为这里可能有在 channel 的区块链上的之前的私有数据的哈希值，而这些哈希值是不能被删除的。
+在一个 Peer 节点提交包含链码更新交易的区块时，集合的更新才会生效。注意，集合是不能够被删除的，因为在通道的区块链上可能有之前的私有数据的哈希，而这些哈希值是不能被删除的。
 
-Private data reconciliation
+私有数据对账
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in v1.4, peers of organizations that are added to an existing collection
-will automatically fetch private data that was committed to the collection before
-they joined the collection.
+从 v1.4 开始，加入到已存在的集合中的 Peer 节点在私有数据加入到集合之前，可以自动获取提交到集合的私有数据。
 
-This private data "reconciliation" also applies to peers that
-were entitled to receive private data but did not yet receive it --- because of
-a network failure, for example --- by keeping track of private data that was "missing"
-at the time of block commit.
+私有数据“对账”也应用在 Peer 节点上，用于确认该接收却未接收到的私有数据，比如由于网络原因没有收到的。以此来追踪在区块提交期间“丢失”的私有数据。
 
-Private data reconciliation occurs periodically based on the
-``peer.gossip.pvtData.reconciliationEnabled`` and ``peer.gossip.pvtData.reconcileSleepInterval``
-properties in core.yaml. The peer will periodically attempt to fetch the private
-data from other collection member peers that are expected to have it.
+私有数据对账根据 core.yaml 文件中的属性 ``peer.gossip.pvtData.reconciliationEnabled`` 和 ``peer.gossip.pvtData.reconcileSleepInterval`` 周期性的发生。Peer 节点会从集合成员节点中定期获取私有数据。
 
-Note that this private data reconciliation feature only works on peers running
-v1.4 or later of Fabric.
-
+注意私有数据对账特性只适用于 v1.4 以上的 Fabric 节点。
+ 
 .. Licensed under Creative Commons Attribution 4.0 International License
    https://creativecommons.org/licenses/by/4.0/

@@ -1,4 +1,4 @@
-# Migrating from Kafka to Raft
+# 从 Kafka 迁移到 Raft
 
 **Note: this document presumes a high degree of expertise with channel
 configuration update transactions. As the process for migration involves
